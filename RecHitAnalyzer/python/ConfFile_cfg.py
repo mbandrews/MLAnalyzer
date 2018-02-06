@@ -57,6 +57,8 @@ process.fevt = cms.EDAnalyzer('RecHitAnalyzer'
     , reducedHBHERecHitCollection = cms.InputTag('reducedHcalRecHits:hbhereco')
     , genParticleCollection = cms.InputTag('genParticles')
     , gedPhotonCollection = cms.InputTag('gedPhotons')
+    , ak4PFJetCollection = cms.InputTag('ak4PFJets')
+    , genJetCollection = cms.InputTag('ak4GenJets')
     )
 
 process.TFileService = cms.Service("TFileService",
@@ -64,6 +66,6 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string(options.outputFile)
     )
 
-process.SimpleMemoryCheck = cms.Service( "SimpleMemoryCheck", ignoreTotal = cms.untracked.int32(1) )
+#process.SimpleMemoryCheck = cms.Service( "SimpleMemoryCheck", ignoreTotal = cms.untracked.int32(1) )
 
 process.p = cms.Path(process.fevt)

@@ -50,6 +50,9 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h" // reco::PhotonCollection defined here
+#include "DataFormats/JetReco/interface/PFJet.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
+#include "DataFormats/JetReco/interface/GenJetCollection.h"
 
 //
 // class declaration
@@ -82,6 +85,8 @@ class RecHitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     edm::EDGetTokenT<HBHERecHitCollection> HBHERecHitCollectionT_;
     edm::EDGetTokenT<reco::GenParticleCollection> genParticleCollectionT_;
     edm::EDGetTokenT<reco::PhotonCollection> photonCollectionT_;
+    edm::EDGetTokenT<reco::PFJetCollection> jetCollectionT_;
+    edm::EDGetTokenT<reco::GenJetCollection> genJetCollectionT_;
     //edm::InputTag trackTags_; //used to select what tracks to read from configuration file
 
     // Declare some constants
@@ -171,6 +176,7 @@ class RecHitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     TH1D * h_E; 
     TH1D * h_eta; 
     TH1D * h_m0; 
+    TH1D * h_leadJetPt; 
     // Single-event:
     TH2D * hEvt_HBHE_EMenergy;
     TH2D * hEvt_EE_energy[EE_IZ_MAX];
@@ -182,6 +188,8 @@ class RecHitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     // Objects used to fill RHTree branches
     float eventId_;
     float m0_;
+    float diPhoE_;
+    float diPhoPt_;
     std::vector<float> vECAL_energy_;
     std::vector<float> vEB_energy_;
     std::vector<float> vEB_time_;
@@ -192,16 +200,21 @@ class RecHitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     std::vector<float> vHBHE_energy_EB_;
     std::vector<float> vHBHE_energy_;
     std::vector<float> vHBHE_EMenergy_;
+    //std::vector<float> vFC_inputs_;
+    math::PtEtaPhiELorentzVectorD vPho_[2];
+    //float vFC_inputs_[5];
   
     // Selection and filling functions
     bool runSelections( const edm::Event&, const edm::EventSetup& );
     bool runSelections_H2GG( const edm::Event&, const edm::EventSetup& );
+    bool runSelections_H24G( const edm::Event&, const edm::EventSetup& );
     void fillEBrechits( const edm::Event&, const edm::EventSetup& );
     void fillEErechits( const edm::Event&, const edm::EventSetup& );
     void fillHBHErechits( const edm::Event&, const edm::EventSetup& );
     void fillECALatHCAL();
     void fillECALstitched();
     void fillEBdigis( const edm::Event&, const edm::EventSetup& );
+    //void fillFC( const edm::Event&, const edm::EventSetup& );
 
 }; // class RecHitAnalyzer
 

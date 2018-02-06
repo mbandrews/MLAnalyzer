@@ -9,10 +9,10 @@ eosDir='/eos/uscms/store/user/mba2012/IMGs'
 #decays = ["H125GGgluonfusion_Pt25_Eta23_13TeV_TuneCUETP8M1_HighLumiPileUpv2", "PromptDiPhoton_MGG80toInf_Pt25_Eta23_13TeV_TuneCUETP8M1_HighLumiPileUp"]
 #decays = ['H125GGgluonfusion_Pt25_Eta14_13TeV_TuneCUETP8M1_HighLumiPileUpv3','GJet_DoubleEMEnriched_PtHat20_MGG80toInf_Pt25_Eta14_13TeV_TuneCUETP8M1_HighLumiPileUp']
 #decays = ['dummy','GJet_DoubleEMEnriched_PtHat20_MGG80toInf_Pt25_Eta23_13TeV_TuneCUETP8M1_HighLumiPileUp']
-decays = ['dummy','test']
+decays = ['h22gammaSM_1j_1M_noPU', 'h24gamma_1j_1M_100MeV_noPU']
 
-#chunk_size = 250
-chunk_size = 100
+#chunk_size_ = 250
+chunk_size_ = 100
 #scale = [100., 150.]
 scale = [100., 100.]
 
@@ -106,8 +106,8 @@ for j,decay in enumerate(decays):
         pass
         continue
 
-    tfile_str = '%s/%s_IMG.root'%(eosDir,decay)
-    #tfile_str = '%s/%s_FEVTDEBUG_IMG.root'%(eosDir,decay)
+    #tfile_str = '%s/%s_IMG.root'%(eosDir,decay)
+    tfile_str = '%s/%s_FEVTDEBUG_IMG.root'%(eosDir,decay)
     tfile = ROOT.TFile(tfile_str)
     tree = tfile.Get('fevt/RHTree')
     nevts = tree.GetEntries()
@@ -115,6 +115,10 @@ for j,decay in enumerate(decays):
     #neff = (nevts//100)*100
     #neff = 29900 
     neff = 100
+    chunk_size = chunk_size_
+    if neff > nevts:
+        neff = int(nevts)
+        chunk_size = int(nevts)
     print " >> Doing decay:", decay
     print " >> Input file:", tfile_str
     print " >> Total events:", nevts
