@@ -114,8 +114,8 @@ class SCRegressor : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     edm::EDGetTokenT<EcalRecHitCollection> RECOESRecHitCollectionT_;
     edm::EDGetTokenT<reco::GenParticleCollection> genParticleCollectionT_;
     edm::EDGetTokenT<reco::GenJetCollection> genJetCollectionT_;
-    edm::EDGetTokenT<reco::TrackCollection> trackCollectionT_;
-    //edm::EDGetTokenT<pat::IsolatedTrackCollection> trackCollectionT_;
+    //edm::EDGetTokenT<reco::TrackCollection> trackCollectionT_;
+    edm::EDGetTokenT<pat::IsolatedTrackCollection> trackCollectionT_;
     edm::EDGetTokenT<double> rhoLabel_;
     edm::EDGetTokenT<edm::TriggerResults> trgResultsT_;
     edm::EDGetTokenT<GenEventInfoProduct> genInfoT_;

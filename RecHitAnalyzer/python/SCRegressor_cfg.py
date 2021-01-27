@@ -94,8 +94,8 @@ process.fevt = cms.EDAnalyzer('SCRegressor'
     #, genParticleCollection = cms.InputTag('genParticles')
     , genParticleCollection = cms.InputTag('prunedGenParticles')
     , genJetCollection = cms.InputTag('ak4GenJets')
-    , trackCollection = cms.InputTag("generalTracks")
-    #, trackCollection = cms.InputTag("isolatedTracks")
+    #, trackCollection = cms.InputTag("generalTracks")
+    , trackCollection = cms.InputTag("isolatedTracks")
     , rhoLabel = cms.InputTag("fixedGridRhoFastjetAll")
     , trgResults = cms.InputTag("TriggerResults","","HLT")
     , generator = cms.InputTag("generator")
@@ -139,7 +139,7 @@ runMetCorAndUncFromMiniAOD (
 )
 
 process.p = cms.Path(
-  #process.hltFilter*
+  process.hltFilter*
   #process.fullPatMetSequenceModifiedMET*
   #process.egammaPostRecoSeq*
   process.fevt

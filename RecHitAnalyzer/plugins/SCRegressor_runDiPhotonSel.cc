@@ -50,11 +50,11 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
     if ( debug ) std::cout << " >> pT:" << iPho->pt() << " eta:" << iPho->eta() << " phi: " << iPho->phi() << " E:" << iPho->energy() << std::endl;
     //if ( std::abs(iPho->pt()) <= 18. ) continue;
     //if ( std::abs(iPho->pt()) < 20. ) continue;
-    //if ( std::abs(iPho->eta()) >= 1.442 ) continue;
+    if ( std::abs(iPho->eta()) >= 1.442 ) continue;
     //if ( std::abs(iPho->eta()) >= 2.4 ) continue;
     vKinPhoIdxs.push_back( iP );
   }
-  //if ( vKinPhoIdxs.size() < 2 ) return false;
+  if ( vKinPhoIdxs.size() < 2 ) return false;
   //if ( vKinPhoIdxs.size() != 2 ) return false;
   hNpassed_kin->Fill(1.);
 
@@ -65,7 +65,7 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
 
     PhotonRef iPho( photons, iP );
 
-    /*
+    ///*
     if ( iPho->full5x5_r9() <= 0.5 ) continue;
     if ( iPho->hadTowOverEm() >= 0.08 ) continue;
     if ( iPho->hasPixelSeed() == true ) continue;
@@ -79,7 +79,7 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
       if ( iPho->trkSumPtHollowConeDR03() >= 6. ) continue;
       //if ( iPho->trackIso() >= 6. ) continue;
     }
-    */
+    //*/
     if ( debug ) std::cout << " >> pT:" << iPho->pt() << " eta:" << iPho->eta() << " phi: " << iPho->phi() << " E:" << iPho->energy() << std::endl;
 
     pho_obj Pho_obj = { iP, std::abs(iPho->pt()) };
@@ -87,17 +87,17 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
 
   } // kinematic photons
   if ( debug ) std::cout << " Presel pho size:" << vPhos.size() << std::endl;
-  //if ( vPhos.size() != 2 ) return false;
+  if ( vPhos.size() != 2 ) return false;
   hNpassed_presel->Fill(1.);
 
-  /*
+  ///*
   // Sort photons by pT, for abitrary N
   std::sort( vPhos.begin(), vPhos.end(), [](auto const &a, auto const &b) { return a.pt > b.pt; } );
   for ( unsigned int iP = 0; iP < vPhos.size(); iP++ ) {
     PhotonRef iPho( photons, vPhos[iP].idx );
     if ( debug ) std::cout << " >> pT:" << iPho->pt() << " eta:" << iPho->eta() << " phi: " << iPho->phi() << " E:" << iPho->energy() << std::endl;
   }
-  */
+  //*/
 
   ///*
   // Check if any photon pairing passes invariant mass cut
@@ -112,6 +112,7 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
   for ( unsigned int j = 0; j < vPhos.size()-1; j++ ) {
 
     PhotonRef jPho( photons, vPhos[j].idx );
+  */
 
     for ( unsigned int k = 1; k < vPhos.size(); k++ ) {
 
@@ -121,7 +122,8 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
       if ( debug ) std::cout << " >> m0:" << vDiPho.mass() << std::endl;
 
       //if ( vDiPho.mass() >= 100. && vDiPho.mass() <= 180.) {
-      if ( vDiPho.mass() > 90. ) {
+      if ( vDiPho.mass() > 55. ) {
+      //if ( vDiPho.mass() > 90. ) {
       //if ( vDiPho.mass() > 80. ) {
         vPhoIdxs.push_back( vPhos[j].idx );
         vPhoIdxs.push_back( vPhos[k].idx );
@@ -132,11 +134,11 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
 
     } //k
     if ( passedMassCut ) break;
-    */
+    //*/
     vPhoIdxs.push_back( vPhos[j].idx );
 
   } // j
-  //if ( !passedMassCut ) return false;
+  if ( !passedMassCut ) return false;
   //if ( debug ) std::cout << " >> m0:" << m0_ << std::endl;
 
   // Apply diphoton pT cuts
@@ -168,7 +170,7 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
   hNpassed_nRecoPho->Fill(1.);
   */
 
-  /*
+  ///*
   // Check HLT trigger decision
   edm::Handle<edm::TriggerResults> trgs;
   iEvent.getByToken( trgResultsT_, trgs );
@@ -180,8 +182,8 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
   }
 
   int hltAccept = -1;
-  //std::string trgName = "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_PixelVeto_Mass55_v*";
-  std::string trgName = "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_*_Mass55_v*";
+  std::string trgName = "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_PixelVeto_Mass55_v*";
+  //std::string trgName = "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_*_Mass55_v*";
   std::vector< std::vector<std::string>::const_iterator > trgMatches = edm::regexMatch( triggerNames.triggerNames(), trgName );
   if ( debug ) std::cout << " N matches: " << trgMatches.size() << std::endl;
 
@@ -198,13 +200,13 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
     }
   }
   hltAccept_ = hltAccept;
-  */
-  /*
+  //*/
+  ///*
   // Ensure trigger acceptance
   hNpassed_hlt->Fill(0.);
   if ( hltAccept_ != 1 ) return false;
   hNpassed_hlt->Fill(1.);
-  */
+  //*/
 
   return true;
 }

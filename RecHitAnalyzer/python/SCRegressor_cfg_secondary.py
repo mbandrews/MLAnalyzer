@@ -41,14 +41,16 @@ print " >> Loaded",len(options.inputFiles),"input files from list."
 #evtsToProc = open('eta_evtsToProc.txt').read().splitlines()
 #print evtsToProc
 #slim_files = ['root://cmseos.fnal.gov//store/user/lpcml/mandrews/AODSIM/h24gamma_1j_1M_1GeV_PU2017_AODSIM_slim/190719_005502/0000/step_aodsim_slim_%d.root'%i for i in range(13,15)]
-slim_files = ['root://cmseos.fnal.gov//store/group/lpcml/mandrews/2017/DoubleEG/Run2017B_17Nov2017-v1_AOD_slim-ext_v2/191108_030956/0000/step_aodsim_slim-ext_367.root']
+#slim_files = ['root://cmseos.fnal.gov//store/group/lpcml/mandrews/2017/DoubleEG/Run2017B_17Nov2017-v1_AOD_slim-ext_v2/191108_030956/0000/step_aodsim_slim-ext_367.root']
+slim_files = ['root://cmseos.fnal.gov//store/group/lpchaa4g/mandrews/2017/Era2017_18May2020_AODslim-ecal_v1/DoubleEG/DoubleEG_2017B_Era2017_18May2020_AODslim-ecal_v1/200519_165159/0000/step_aodsim_slim-ecal_651.root']
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
       #'file:myfile.root'
       #'/store/user/lpcml/mandrews/MINIAODSIM/h24gamma_1j_1M_1GeV_TEST_PU2017_MINIAODSIM/190712_044728/0000/step_miniaodsim_ext3_1.root'
       #"root://cms-xrd-global.cern.ch//store/group/phys_higgs/cmshgg/mandrews/flashgg/h24g_26Sep2019/RunIIFall18-4_0_0-119-g2d54185d/MINIAODSIM/h24g_26Sep2019-RunIIFall18-4_0_0-119-g2d54185d-v0-mandrews-h24gamma_1j_1M_1GeV_PU2017_MINIAODSIM-919c80a76a70185609d372d13ecbc645/190926_214616/0000/myMicroAODOutputFile_22.root"
-      'root://cms-xrd-global.cern.ch//store/data/Run2017B/DoubleEG/MINIAOD/31Mar2018-v1/00000/702D7722-4837-E811-B733-6CC2173D9AB0.root'
+      #'root://cms-xrd-global.cern.ch//store/data/Run2017B/DoubleEG/MINIAOD/31Mar2018-v1/00000/702D7722-4837-E811-B733-6CC2173D9AB0.root'
+      'root://cms-xrd-global.cern.ch//store/data/Run2017B/DoubleEG/MINIAOD/31Mar2018-v1/00000/DAFDABA4-4C37-E811-B4AD-0CC47A5FBE35.root'
       ),
     secondaryFileNames = cms.untracked.vstring(
       #'file:myfile.root'
@@ -60,7 +62,7 @@ process.source = cms.Source("PoolSource",
     #, eventsToProcess = cms.untracked.VEventRange('1:6931:1723687928','1:6932:1723895372')
     #, eventsToProcess = cms.untracked.VEventRange(*evtsToProc)
     #, lumisToProcess = cms.untracked.VLuminosityBlockRange('1:2133-1:2133')
-    #, lumisToProcess = cms.untracked.VLuminosityBlockRange('1:3393-1:3393')
+    , lumisToProcess = cms.untracked.VLuminosityBlockRange('297219:518-297219:519')
     )
 
 if options.eventsToProcess:
@@ -99,8 +101,8 @@ process.fevt = cms.EDAnalyzer('SCRegressor'
     #, genParticleCollection = cms.InputTag('genParticles')
     , genParticleCollection = cms.InputTag('prunedGenParticles')
     , genJetCollection = cms.InputTag('ak4GenJets')
-    , trackCollection = cms.InputTag("generalTracks")
-    #, trackCollection = cms.InputTag("isolatedTracks")
+    #, trackCollection = cms.InputTag("generalTracks")
+    , trackCollection = cms.InputTag("isolatedTracks")
     , rhoLabel = cms.InputTag("fixedGridRhoFastjetAll")
     , trgResults = cms.InputTag("TriggerResults","","HLT")
     , generator = cms.InputTag("generator")
@@ -144,7 +146,7 @@ runMetCorAndUncFromMiniAOD (
 )
 
 process.p = cms.Path(
-  #process.hltFilter*
+  process.hltFilter*
   #process.fullPatMetSequenceModifiedMET*
   #process.egammaPostRecoSeq*
   process.fevt

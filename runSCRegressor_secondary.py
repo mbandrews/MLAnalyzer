@@ -28,7 +28,8 @@ evtList_ = 'DoubleEG_2017B_2photons_ggskim_event_list.txt'
 #    os.system('mkdir %s'%(inputTag))
 #cmd="cmsRun %s inputFiles=%s maxEvents=%d skipEvents=%d"%(cfg,inputFiles_,maxEvents_,ievt)
 #cmd="cmsRun %s inputFiles=%s maxEvents=%d skipEvents=%d"%(cfg,inputFiles_,maxEvents_,skipEvents_)
-cmd="cmsRun %s maxEvents=%d skipEvents=%d eventsToProcess_load=%s"%(cfg,maxEvents_,skipEvents_,evtList_)
+cmd="cmsRun %s maxEvents=%d skipEvents=%d"%(cfg,maxEvents_,skipEvents_)
+#cmd="cmsRun %s maxEvents=%d skipEvents=%d eventsToProcess_load=%s"%(cfg,maxEvents_,skipEvents_,evtList_)
 print '%s'%cmd
 os.system(cmd)
 #os.system('mv c*.eps %s/'%(inputTag))

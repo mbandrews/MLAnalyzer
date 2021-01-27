@@ -35,8 +35,8 @@ SCRegressor::SCRegressor(const edm::ParameterSet& iConfig)
   RECOESRecHitCollectionT_ = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("ESRecHitCollection"));
   genParticleCollectionT_ = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticleCollection"));
   genJetCollectionT_ = consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("genJetCollection"));
-  trackCollectionT_ = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("trackCollection"));
-  //trackCollectionT_ = consumes<pat::IsolatedTrackCollection>(iConfig.getParameter<edm::InputTag>("trackCollection"));
+  //trackCollectionT_ = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("trackCollection"));
+  trackCollectionT_ = consumes<pat::IsolatedTrackCollection>(iConfig.getParameter<edm::InputTag>("trackCollection"));
   rhoLabel_ = consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"));
   trgResultsT_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("trgResults"));
   genInfoT_ = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"));

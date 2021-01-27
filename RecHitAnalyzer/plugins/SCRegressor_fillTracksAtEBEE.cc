@@ -66,8 +66,8 @@ void SCRegressor::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::EventS
   }
   */
 
-  edm::Handle<reco::TrackCollection> tracksH_;
-  //edm::Handle<pat::IsolatedTrackCollection> tracksH_;
+  //edm::Handle<reco::TrackCollection> tracksH_;
+  edm::Handle<pat::IsolatedTrackCollection> tracksH_;
   iEvent.getByToken( trackCollectionT_, tracksH_ );
 
   // Provides access to global cell position
@@ -75,12 +75,12 @@ void SCRegressor::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::EventS
   iSetup.get<CaloGeometryRecord>().get( caloGeomH_ );
   const CaloGeometry* caloGeom = caloGeomH_.product();
 
-  reco::Track::TrackQuality tkQt_ = reco::Track::qualityByName("highPurity");
+  //reco::Track::TrackQuality tkQt_ = reco::Track::qualityByName("highPurity");
 
-  for ( reco::TrackCollection::const_iterator iTk = tracksH_->begin();
-  //for ( pat::IsolatedTrackCollection::const_iterator iTk = tracksH_->begin();
+  //for ( reco::TrackCollection::const_iterator iTk = tracksH_->begin();
+  for ( pat::IsolatedTrackCollection::const_iterator iTk = tracksH_->begin();
         iTk != tracksH_->end(); ++iTk ) {
-    if ( !(iTk->quality(tkQt_)) ) continue;
+    //if ( !(iTk->quality(tkQt_)) ) continue;
 
     eta = iTk->eta();
     phi = iTk->phi();
