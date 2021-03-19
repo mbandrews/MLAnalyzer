@@ -14,7 +14,7 @@ cfg='RecHitAnalyzer/python/SCRegressor_cfg_secondary.py'
 
 maxEvents_=-1
 #maxEvents_=1000
-#maxEvents_=1
+#maxEvents_=100
 skipEvents_=0
 #outputFile_='output.root'
 #inputTag=inputFiles_.strip('file:').strip('_FEVTDEBUG.root')

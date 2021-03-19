@@ -27,7 +27,7 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 #process.load("Geometry.CaloEventSetup.CaloGeometry_cfi");
 #process.load("Geometry.CaloEventSetup.CaloTopology_cfi");
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+#process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.maxEvents = cms.untracked.PSet(
@@ -107,7 +107,36 @@ process.fevt = cms.EDAnalyzer('SCRegressor'
     , trgResults = cms.InputTag("TriggerResults","","HLT")
     , generator = cms.InputTag("generator")
     , lhe = cms.InputTag("lhe")
-    )
+
+    # 3x3 clustering
+    , seleXtalMinEnergy = cms.double(0.0),
+    #clusSeedThr = cms.double(0.5),
+    clusSeedThr = cms.double(1.),
+    clusPhiSize = cms.int32(3),
+    clusEtaSize = cms.int32(3),
+    ParameterLogWeighted = cms.bool(True),
+    ParameterX0 = cms.double(0.89),
+    ParameterW0 = cms.double(4.2),
+    ParameterT0_barl = cms.double(5.7),
+    selePtGammaOne = cms.double(0.9),
+    selePtGammaTwo = cms.double(0.9),
+    seleS4S9GammaOne = cms.double(0.85),
+    seleS4S9GammaTwo = cms.double(0.85),
+    selePtPi0 = cms.double(2.5),
+    selePi0Iso = cms.double(0.5),
+    selePi0BeltDR = cms.double(0.2),
+    selePi0BeltDeta = cms.double(0.05),
+    #seleMinvMaxPi0 = cms.double(0.5),
+    seleMinvMaxPi0 = cms.double(1.2),
+    seleMinvMinPi0 = cms.double(0.0),
+    posCalcParameters = cms.PSet(T0_barl      = cms.double(5.7),
+                                 T0_endc      = cms.double(3.1),
+                                 T0_endcPresh = cms.double(1.2),
+                                 LogWeighted  = cms.bool(True),
+                                 W0           = cms.double(4.2),
+                                 X0           = cms.double(0.89)
+                                 )
+    ) # process.fevt
 
 process.TFileService = cms.Service("TFileService",
     #fileName = cms.string('histo.root')

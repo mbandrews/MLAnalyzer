@@ -42,6 +42,29 @@ SCRegressor::SCRegressor(const edm::ParameterSet& iConfig)
   genInfoT_ = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"));
   lheEventT_ = consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("lhe"));
 
+  // parameters for Pizero finding
+  seleXtalMinEnergy_    = iConfig.getParameter<double> ("seleXtalMinEnergy");
+  clusSeedThr_          = iConfig.getParameter<double> ("clusSeedThr");
+  clusEtaSize_          = iConfig.getParameter<int> ("clusEtaSize");
+  clusPhiSize_          = iConfig.getParameter<int> ("clusPhiSize");
+  ParameterLogWeighted_ = iConfig.getParameter<bool> ("ParameterLogWeighted");
+  ParameterX0_          = iConfig.getParameter<double> ("ParameterX0");
+  ParameterT0_barl_     = iConfig.getParameter<double> ("ParameterT0_barl");
+  ParameterW0_          = iConfig.getParameter<double> ("ParameterW0");
+
+  selePtGammaOne_       = iConfig.getParameter<double> ("selePtGammaOne");
+  selePtGammaTwo_       = iConfig.getParameter<double> ("selePtGammaTwo");
+  seleS4S9GammaOne_     = iConfig.getParameter<double> ("seleS4S9GammaOne");
+  seleS4S9GammaTwo_     = iConfig.getParameter<double> ("seleS4S9GammaTwo");
+  selePtPi0_            = iConfig.getParameter<double> ("selePtPi0");
+  selePi0Iso_           = iConfig.getParameter<double> ("selePi0Iso");
+  selePi0BeltDR_        = iConfig.getParameter<double> ("selePi0BeltDR");
+  selePi0BeltDeta_      = iConfig.getParameter<double> ("selePi0BeltDeta");
+  seleMinvMaxPi0_       = iConfig.getParameter<double> ("seleMinvMaxPi0");
+  seleMinvMinPi0_       = iConfig.getParameter<double> ("seleMinvMinPi0");
+
+  posCalcParameters_    = iConfig.getParameter<edm::ParameterSet>("posCalcParameters");
+
   //now do what ever initialization is needed
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -70,6 +93,7 @@ SCRegressor::SCRegressor(const edm::ParameterSet& iConfig)
   branchesTracksAtEBEE     ( RHTree, fs );
   branchesPhoVars     ( RHTree, fs );
   //branchesEvtWgt     ( RHTree, fs );
+  branches3b3     ( RHTree, fs );
 
   hNpassed_img = fs->make<TH1F>("hNpassed_img", "isPassed;isPassed;N", 2, 0., 2);
 }
@@ -214,7 +238,7 @@ SCRegressor::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   // Enforce selection
   if ( debug ) std::cout << " >> nPho: " << nPho << std::endl;
-  //if ( nPho == 0 ) return; // Pi/Photon gun selection
+  if ( nPho == 0 ) return; // Pi/Photon gun selection
   //if ( nPho < 1 ) return; // ZJets physics selection
   //if ( nPho != 2 ) return; // Diphoton physics selection
   if ( debug ) std::cout << " >> Passed cropping. " << std::endl;
@@ -234,9 +258,10 @@ SCRegressor::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   fillTracksAtEBEE     ( iEvent, iSetup );
   fillPhoVars     ( iEvent, iSetup );
   //fillEvtWgt     ( iEvent, iSetup );
+  fill3b3     ( iEvent, iSetup );
 
   //nPassed++;
-  //nPassed += nPho;
+  nPassed += nPho;
 
   RHTree->Fill();
   hNpassed_img->Fill(1.);

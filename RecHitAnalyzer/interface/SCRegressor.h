@@ -63,6 +63,14 @@
 
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
+
+/// 3x3 clustering: EgammaCoreTools
+#include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
+//#include "RecoEcal/EgammaCoreTools/interface/EcalEtaPhiRegion.h"
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
+#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "TVector3.h"
+
 //
 // class declaration
 //
@@ -159,6 +167,7 @@ class SCRegressor : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     void branchesTracksAtEBEE ( TTree*, edm::Service<TFileService>& );
     void branchesPhoVars ( TTree*, edm::Service<TFileService>& );
     void branchesEvtWgt ( TTree*, edm::Service<TFileService>& );
+    void branches3b3 ( TTree*, edm::Service<TFileService>& );
 
     void fillSC     ( const edm::Event&, const edm::EventSetup& );
     void fillSCaod  ( const edm::Event&, const edm::EventSetup& );
@@ -167,6 +176,7 @@ class SCRegressor : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     void fillTracksAtEBEE ( const edm::Event&, const edm::EventSetup& );
     void fillPhoVars ( const edm::Event&, const edm::EventSetup& );
     void fillEvtWgt ( const edm::Event&, const edm::EventSetup& );
+    void fill3b3 ( const edm::Event&, const edm::EventSetup& );
 
     void branchesPiSel       ( TTree*, edm::Service<TFileService>& );
     void branchesPhotonSel   ( TTree*, edm::Service<TFileService>& );
@@ -234,6 +244,7 @@ class SCRegressor : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     std::vector<float> vPho_eta_;
     std::vector<float> vPho_phi_;
     std::vector<float> vPho_ecalEPostCorr_;
+    std::vector<float> vPho_mass3b3_;
 
     std::vector<float> vPho_r9_;
     std::vector<float> vPho_sieie_;
@@ -296,6 +307,7 @@ class SCRegressor : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     TH1F * hNpassed_nRecoPho;
     TH1F * hNpassed_hlt;
     TH1F * hNpassed_img;
+    TH1F * hPho_mass3b3;
 
     //TProfile2D * hnPho;
     TH2F * hnPho;
@@ -315,6 +327,30 @@ class SCRegressor : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     std::vector<float> vMinDR_;
     double evtWeight_;
 
+    // 3x3 clustering
+    edm::ParameterSet posCalcParameters_;
+
+    double clusSeedThr_;
+    int clusEtaSize_;
+    int clusPhiSize_;
+
+    double seleXtalMinEnergy_;
+
+    bool ParameterLogWeighted_;
+    double ParameterX0_;
+    double ParameterT0_barl_;
+    double ParameterW0_;
+
+    double selePtGammaOne_;
+    double selePtGammaTwo_;
+    double selePtPi0_;
+    double seleS4S9GammaOne_;
+    double seleS4S9GammaTwo_;
+    double selePi0BeltDR_;
+    double selePi0BeltDeta_;
+    double selePi0Iso_;
+    double seleMinvMaxPi0_;
+    double seleMinvMinPi0_;
 };
 
 //
