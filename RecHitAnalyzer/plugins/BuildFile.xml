@@ -12,6 +12,7 @@
  <use name="DataFormats/PatCandidates"/>
  <use name="DataFormats/Common"/>
  <use name="SimDataFormats/GeneratorProducts"/>
+ <use name="SimDataFormats/PileupSummaryInfo"/>
  <use name="DQM/HcalCommon"/>
  <use name="Geometry/CaloGeometry"/>
  <use name="Geometry/Records"/>

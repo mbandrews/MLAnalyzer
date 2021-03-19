@@ -37,6 +37,8 @@ void SCRegressor::branchesPhoVars ( TTree* tree, edm::Service<TFileService> &fs 
   tree->Branch("pho_bdt",            &vPho_bdt_);
   tree->Branch("pho_idx",            &vPho_idx_);
 
+  tree->Branch("evtPU",              &evtPU_);
+
 } // branchesPhoVars()
 
 // Fill PhoVars rechits _________________________________________________________________//
@@ -50,6 +52,18 @@ void SCRegressor::fillPhoVars ( const edm::Event& iEvent, const edm::EventSetup&
   float rho = *rhoH;
   //std::cout << "rho:" << *rhoH << std::endl;
   //std::cout << "rho:" << *(rhoH.product()) << std::endl;
+
+  edm::Handle<std::vector<PileupSummaryInfo> > genPileupH;
+  iEvent.getByToken(puCollectionT_, genPileupH);
+
+  evtPU_ = -1.;
+  if ( genPileupH.isValid() ) {
+    for ( std::vector<PileupSummaryInfo>::const_iterator pu = genPileupH->begin(); pu != genPileupH->end(); ++pu ) {
+      if ( pu->getBunchCrossing() != 0 ) continue;
+      evtPU_ = pu->getTrueNumInteractions();
+    }
+  } // genPileupH.isValid()
+  //std::cout << " evtPU:" << evtPU_ << std::endl;
 
   edm::Handle<PhotonCollection> photons;
   iEvent.getByToken(photonCollectionT_, photons);

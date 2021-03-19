@@ -65,7 +65,8 @@ cfg='RecHitAnalyzer/python/SCRegressor_cfg.py'
 #inputFiles_='/store/mc/RunIIFall17MiniAODv2/QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCP5_13TeV_Pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/10000/0C57DB95-FA41-E811-B58D-008CFAFBEBF2.root'
 #root://cmsxrootd-site.fnal.gov
 #inputFiles_='/store/group/lpcml/mandrews/2017/DoubleEG/Run2017B_17Nov2017-v1_AOD_slim-ext_v2/191108_030956/0002/step_aodsim_slim-ext_2420.root'
-inputFiles_='/store/group/lpcml/mandrews/2017/DoubleEG/Run2017B_17Nov2017-v1_AOD_slim-ext_v2/191108_030956/0000/step_aodsim_slim-ext_367.root'
+#inputFiles_='/store/group/lpcml/mandrews/2017/DoubleEG/Run2017B_17Nov2017-v1_AOD_slim-ext_v2/191108_030956/0000/step_aodsim_slim-ext_367.root'
+inputFiles_='/store/user/lpcml/mandrews/MINIAODSIM/DoublePi0Pt10To100_m0To1600_pythia8_ReAOD_PU2017_MINIAODSIM/190610_033632/0000/step_MINIAODSIMext2_1.root'
 
 maxEvents_=-1
 #maxEvents_=1000
@@ -81,8 +82,8 @@ evtList_ = 'DoubleEG_2017B_2photons_ggskim_event_list.txt'
 #if not os.path.isdir(inputTag):
 #    os.system('mkdir %s'%(inputTag))
 #cmd="cmsRun %s inputFiles=%s maxEvents=%d skipEvents=%d"%(cfg,inputFiles_,maxEvents_,ievt)
-#cmd="cmsRun %s inputFiles=%s maxEvents=%d skipEvents=%d"%(cfg,inputFiles_,maxEvents_,skipEvents_)
-cmd="cmsRun %s inputFiles=%s maxEvents=%d skipEvents=%d eventsToProcess_load=%s"%(cfg,inputFiles_,maxEvents_,skipEvents_,evtList_)
+cmd="cmsRun %s inputFiles=%s maxEvents=%d skipEvents=%d"%(cfg,inputFiles_,maxEvents_,skipEvents_)
+#cmd="cmsRun %s inputFiles=%s maxEvents=%d skipEvents=%d eventsToProcess_load=%s"%(cfg,inputFiles_,maxEvents_,skipEvents_,evtList_)
 print '%s'%cmd
 os.system(cmd)
 #os.system('mv c*.eps %s/'%(inputTag))

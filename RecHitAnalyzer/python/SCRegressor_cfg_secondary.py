@@ -107,6 +107,7 @@ process.fevt = cms.EDAnalyzer('SCRegressor'
     , trgResults = cms.InputTag("TriggerResults","","HLT")
     , generator = cms.InputTag("generator")
     , lhe = cms.InputTag("lhe")
+    , puCollection = cms.InputTag("slimmedAddPileupInfo")
 
     # 3x3 clustering
     , seleXtalMinEnergy = cms.double(0.0),

@@ -41,6 +41,7 @@ SCRegressor::SCRegressor(const edm::ParameterSet& iConfig)
   trgResultsT_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("trgResults"));
   genInfoT_ = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"));
   lheEventT_ = consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("lhe"));
+  puCollectionT_ = consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("puCollection"));
 
   // parameters for Pizero finding
   seleXtalMinEnergy_    = iConfig.getParameter<double> ("seleXtalMinEnergy");

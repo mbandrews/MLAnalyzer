@@ -63,6 +63,7 @@
 
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 /// 3x3 clustering: EgammaCoreTools
 #include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
@@ -128,6 +129,7 @@ class SCRegressor : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     edm::EDGetTokenT<edm::TriggerResults> trgResultsT_;
     edm::EDGetTokenT<GenEventInfoProduct> genInfoT_;
     edm::EDGetTokenT<LHEEventProduct> lheEventT_;
+    edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puCollectionT_;
 
     static const int nPhotons = 2;
     //static const int nPhotons = 1;
@@ -271,6 +273,8 @@ class SCRegressor : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     std::vector<float> vPho_chgIsoCorr_;
     std::vector<float> vPho_bdt_;
     std::vector<float> vPho_idx_;
+
+    float evtPU_;
 
     std::vector<float> vSC_mass_;
     std::vector<float> vSC_DR_;
