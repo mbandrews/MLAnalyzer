@@ -83,7 +83,7 @@ void SCRegressor::fillPhoVars ( const edm::Event& iEvent, const edm::EventSetup&
     vPho_E_.push_back( iPho->energy() );
     vPho_eta_.push_back( iPho->eta() );
     vPho_phi_.push_back( iPho->phi() );
-    vPho_ecalEPostCorr_.push_back( iPho->userFloat("ecalEnergyPostCorr") );
+    //vPho_ecalEPostCorr_.push_back( iPho->userFloat("ecalEnergyPostCorr") ); //2017 only: https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#Running_on_2017_MiniAOD_V2
     //std::cout << ">> PRESEL pho["<<iP<<"]: pt:" << iPho->pt() << " eta:" << iPho->eta() << " phi:" << iPho->phi() << std::endl;
   } // photons
 

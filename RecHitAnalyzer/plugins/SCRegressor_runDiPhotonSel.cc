@@ -10,7 +10,9 @@ void SCRegressor::branchesDiPhotonSel ( TTree* tree, edm::Service<TFileService> 
 {
   tree->Branch("m0",        &m0_);
   tree->Branch("FC_inputs", &vFC_inputs_);
-  tree->Branch("hltAccept", &hltAccept_);
+  //tree->Branch("hltAccept", &hltAccept_);
+  tree->Branch("hltMass55", &hltMass55_);
+  tree->Branch("hltMass90", &hltMass90_);
   tree->Branch("nRecoPho",  &nRecoPho_);
   tree->Branch("minDR",     &vMinDR_);
 
@@ -181,32 +183,59 @@ bool SCRegressor::runDiPhotonSel ( const edm::Event& iEvent, const edm::EventSet
     if ( debug ) std::cout << " name["<<iT<<"]:"<<triggerNames.triggerName(iT)<< std::endl;
   }
 
-  int hltAccept = -1;
-  std::string trgName = "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_PixelVeto_Mass55_v*";
-  //std::string trgName = "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_*_Mass55_v*";
-  std::vector< std::vector<std::string>::const_iterator > trgMatches = edm::regexMatch( triggerNames.triggerNames(), trgName );
-  if ( debug ) std::cout << " N matches: " << trgMatches.size() << std::endl;
+  //int hltAccept = -1;
+  //std::string trgName = "HLT_Diphoton30_22_R9Id_OR_IsoCaloId_AND_HE_R9Id_Mass90_v*";
+  ////std::string trgName = "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_PixelVeto_Mass55_v*";
+  ////std::string trgName = "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_*_Mass55_v*";
+  //std::vector< std::vector<std::string>::const_iterator > trgMatches = edm::regexMatch( triggerNames.triggerNames(), trgName );
+  //if ( debug ) std::cout << " N matches: " << trgMatches.size() << std::endl;
 
+  //if ( !trgMatches.empty() ) {
+  //  //std::vector<std::string>  HLTPathsByName_;
+  //  //std::vector<unsigned int> HLTPathsByIndex_;
+  //  hltAccept = 0;
+  //  for ( auto const& iT : trgMatches ) {
+  //    if ( debug ) std::cout << " name["<<triggerNames.triggerIndex(*iT)<<"]:"<< *iT << " -> " << trgs->accept(triggerNames.triggerIndex(*iT)) << std::endl;
+  //    //HLTPathsByName_.push_back( *iT );
+  //    //HLTPathsByIndex_.push_back( triggerNames.triggerIndex(*iT) );
+  //    if ( trgs->accept(triggerNames.triggerIndex(*iT)) ) hltAccept = 1;
+  //    break;
+  //  }
+  //}
+  //hltAccept_ = hltAccept;
+  ////*/
+  /////*
+  //// Ensure trigger acceptance
+  //hNpassed_hlt->Fill(0.);
+  //if ( hltAccept_ != 1 ) return false;
+  //hNpassed_hlt->Fill(1.);
+  ////*/
+
+  int hltAccept = -1;
+  std::string trgName = "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_*_Mass55_v*";
+  std::vector< std::vector<std::string>::const_iterator > trgMatches = edm::regexMatch( triggerNames.triggerNames(), trgName );
   if ( !trgMatches.empty() ) {
-    //std::vector<std::string>  HLTPathsByName_;
-    //std::vector<unsigned int> HLTPathsByIndex_;
     hltAccept = 0;
     for ( auto const& iT : trgMatches ) {
-      if ( debug ) std::cout << " name["<<triggerNames.triggerIndex(*iT)<<"]:"<< *iT << " -> " << trgs->accept(triggerNames.triggerIndex(*iT)) << std::endl;
-      //HLTPathsByName_.push_back( *iT );
-      //HLTPathsByIndex_.push_back( triggerNames.triggerIndex(*iT) );
       if ( trgs->accept(triggerNames.triggerIndex(*iT)) ) hltAccept = 1;
       break;
     }
   }
-  hltAccept_ = hltAccept;
-  //*/
-  ///*
-  // Ensure trigger acceptance
-  hNpassed_hlt->Fill(0.);
-  if ( hltAccept_ != 1 ) return false;
-  hNpassed_hlt->Fill(1.);
-  //*/
+  hltMass55_ = hltAccept;
+
+  hltAccept = -1;
+  trgName = "HLT_Diphoton30_22_R9Id_OR_IsoCaloId_AND_HE_R9Id_Mass90_v*";
+  trgMatches = edm::regexMatch( triggerNames.triggerNames(), trgName );
+  if ( !trgMatches.empty() ) {
+    hltAccept = 0;
+    for ( auto const& iT : trgMatches ) {
+      if ( trgs->accept(triggerNames.triggerIndex(*iT)) ) hltAccept = 1;
+      break;
+    }
+  }
+  hltMass90_ = hltAccept;
+
+  if ( hltMass55_ != 1 && hltMass90_ != 1 ) return false;
 
   return true;
 }

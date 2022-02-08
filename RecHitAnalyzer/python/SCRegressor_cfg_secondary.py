@@ -152,6 +152,9 @@ process.hltFilter = cms.EDFilter("HLTHighLevel",
                                           throw = cms.bool(False)
                                           )
 
+#https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes
+
+# 2017 MINIAOD
 #### fix a bug in the ECAL-Tracker momentum combination when applying the scale and smearing
 #from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 #setupEgammaPostRecoSeq(process,
@@ -164,6 +167,14 @@ process.hltFilter = cms.EDFilter("HLTHighLevel",
 #                       phoIDModules=['RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Fall17_94X_V2_cff',
 #                                     'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff']
 #                       )
+
+# 2016 MINIAOD
+#from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+#setupEgammaPostRecoSeq(process,
+#                       runVID=True,
+#                       runEnergyCorrections=False, #no point in re-running them, they are already fine
+#                       era='2016-Legacy')  #era is new to select between 2016 / 2017,  it defaults to 2017
+##a sequence egammaPostRecoSeq has now been created and should be added to your path, eg process.p=cms.Path(process.egammaPostRecoSeq)
 
 ### reduce effect of high eta EE noise on the PF MET measurement
 from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD

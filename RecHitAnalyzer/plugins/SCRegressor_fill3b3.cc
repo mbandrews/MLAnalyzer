@@ -5,6 +5,11 @@ void SCRegressor::branches3b3 ( TTree* tree, edm::Service<TFileService> &fs )
 {
 
   tree->Branch("pho_mass3b3", &vPho_mass3b3_);
+  tree->Branch("pho_dR3b3",   &vPho_dR3b3_);
+  tree->Branch("pho_ieta03b3",   &vPho_ieta03b3_);
+  tree->Branch("pho_ieta13b3",   &vPho_ieta13b3_);
+  tree->Branch("pho_iphi03b3",   &vPho_iphi03b3_);
+  tree->Branch("pho_iphi13b3",   &vPho_iphi13b3_);
 
   hPho_mass3b3 = fs->make<TH1F>("hPho_mass3b3", "pho_mass3b3;mass;N", 48, 0., 1.2);
 
@@ -24,8 +29,14 @@ void SCRegressor::fill3b3 ( const edm::Event& iEvent, const edm::EventSetup& iSe
   float default_mass = -9.;
   std::vector<float> vPho_mass3b3;
   vPho_mass3b3_.assign( vRegressPhoIdxs_.size(), default_mass );
+  vPho_dR3b3_.assign( vRegressPhoIdxs_.size(), default_mass );
   //std::cout << ">> N regressable photons:" << vRegressPhoIdxs_.size() << std::endl;
   //std::cout << ">> vPho_mass3b3_.size():" << vPho_mass3b3_.size() << std::endl;
+  vPho_ieta03b3_.assign( vRegressPhoIdxs_.size(), default_mass );
+  vPho_ieta13b3_.assign( vRegressPhoIdxs_.size(), default_mass );
+  vPho_iphi03b3_.assign( vRegressPhoIdxs_.size(), default_mass );
+  vPho_iphi13b3_.assign( vRegressPhoIdxs_.size(), default_mass );
+  int iphi_, ieta_; // rows:ieta, cols:iphi
 
   //////////////// Get handles ///////////////////////////
 
@@ -354,7 +365,36 @@ void SCRegressor::fill3b3 ( const edm::Event& iEvent, const edm::EventSetup& iSe
             // Prefer most energetic cand => dont overwrite previous cands
             if ( vPho_mass3b3_[iP] != default_mass ) continue;
             vPho_mass3b3_[iP] = m_inv;
+            vPho_dR3b3_[iP] = dR;
             hPho_mass3b3->Fill(m_inv);
+            // Store ieta,iphi of 3x3 cluster seeds
+            if ( dR_i < dR_j ) {
+              // core seed
+              ieta_ = max_hit[i].ieta() > 0 ? max_hit[i].ieta()-1 : max_hit[i].ieta(); // [-85,...,-1,1,...,85]
+              ieta_ += EBDetId::MAX_IETA; // [0,...,169]
+              iphi_ = max_hit[i].iphi()-1; // [0,...,359]
+              vPho_ieta03b3_[iP] = ieta_;
+              vPho_iphi03b3_[iP] = iphi_;
+              // satellite seed
+              ieta_ = max_hit[j].ieta() > 0 ? max_hit[j].ieta()-1 : max_hit[j].ieta(); // [-85,...,-1,1,...,85]
+              ieta_ += EBDetId::MAX_IETA; // [0,...,169]
+              iphi_ = max_hit[j].iphi()-1; // [0,...,359]
+              vPho_ieta13b3_[iP] = ieta_;
+              vPho_iphi13b3_[iP] = iphi_;
+            } else {
+              // satellite seed
+              ieta_ = max_hit[i].ieta() > 0 ? max_hit[i].ieta()-1 : max_hit[i].ieta(); // [-85,...,-1,1,...,85]
+              ieta_ += EBDetId::MAX_IETA; // [0,...,169]
+              iphi_ = max_hit[i].iphi()-1; // [0,...,359]
+              vPho_ieta13b3_[iP] = ieta_;
+              vPho_iphi13b3_[iP] = iphi_;
+              // core seed
+              ieta_ = max_hit[j].ieta() > 0 ? max_hit[j].ieta()-1 : max_hit[j].ieta(); // [-85,...,-1,1,...,85]
+              ieta_ += EBDetId::MAX_IETA; // [0,...,169]
+              iphi_ = max_hit[j].iphi()-1; // [0,...,359]
+              vPho_ieta03b3_[iP] = ieta_;
+              vPho_iphi03b3_[iP] = iphi_;
+            }
             //std::cout << "   .. m:"<< m_inv << std::endl;
             nPi0Cands++;
             nJ++;
