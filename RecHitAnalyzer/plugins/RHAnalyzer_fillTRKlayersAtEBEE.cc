@@ -320,8 +320,8 @@ void RecHitAnalyzer::fillTRKlayersAtEBEE ( const edm::Event& iEvent, const edm::
 
     if ( tkId.subdetId() == StripSubdetector::TOB ) {
 
-      layer = TOBDetId( tkId ).layer();
-      hTOB_layers->Fill(layer);
+      //layer = TOBDetId( tkId ).layer();
+      //hTOB_layers->Fill(layer);
 
       if ( ecalId.subdetId() == EcalBarrel )
         fillTRKatEB( EBDetId(ecalId), layer-1, hTOB_EB, vTOB_EB_ );
@@ -330,8 +330,8 @@ void RecHitAnalyzer::fillTRKlayersAtEBEE ( const edm::Event& iEvent, const edm::
 
     } else if ( tkId.subdetId() == StripSubdetector::TEC ) {
     
-      layer = TECDetId( tkId ).wheel();
-      hTEC_layers->Fill(layer);
+      //layer = TECDetId( tkId ).wheel();
+      //hTEC_layers->Fill(layer);
       if ( ecalId.subdetId() == EcalBarrel )
         fillTRKatEB( EBDetId(ecalId), layer-1, hTEC_EB, vTEC_EB_ );
       else if ( ecalId.subdetId() == EcalEndcap )
@@ -339,8 +339,8 @@ void RecHitAnalyzer::fillTRKlayersAtEBEE ( const edm::Event& iEvent, const edm::
 
     } else if ( tkId.subdetId() == StripSubdetector::TIB ) {
     
-      layer = TIBDetId( tkId ).layer();
-      hTIB_layers->Fill(layer);
+      //layer = TIBDetId( tkId ).layer();
+      //hTIB_layers->Fill(layer);
       if ( ecalId.subdetId() == EcalBarrel )
         fillTRKatEB( EBDetId(ecalId), layer-1, hTIB_EB, vTIB_EB_ );
       else if ( ecalId.subdetId() == EcalEndcap )
@@ -348,8 +348,8 @@ void RecHitAnalyzer::fillTRKlayersAtEBEE ( const edm::Event& iEvent, const edm::
 
     } else if ( tkId.subdetId() == StripSubdetector::TID ) {
     
-      layer = TIDDetId( tkId ).wheel();
-      hTID_layers->Fill(layer);
+      //layer = TIDDetId( tkId ).wheel();
+      //hTID_layers->Fill(layer);
       if ( ecalId.subdetId() == EcalBarrel )
         fillTRKatEB( EBDetId(ecalId), layer-1, hTID_EB, vTID_EB_ );
       else if ( ecalId.subdetId() == EcalEndcap )
