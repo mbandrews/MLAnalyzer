@@ -19,7 +19,8 @@ vector<int>   vFailedJetIdx_;
 
 
 //const std::string jetSelection = "dijet_gg_qq"; // TODO: put switch at cfg level
-const std::string jetSelection = "dijet";
+//const std::string jetSelection = "dijet";
+const std::string jetSelection = "taujet";
 
 
 // Initialize branches _____________________________________________________//
@@ -34,6 +35,8 @@ void RecHitAnalyzer::branchesEvtSel_jet ( TTree* tree, edm::Service<TFileService
   // Fill branches in explicit jet selection
   if ( jetSelection == "dijet_gg_qq" ) {
     branchesEvtSel_jet_dijet_gg_qq( tree, fs );
+  } else if ( jetSelection == "taujet") {
+    branchesEvtSel_jet_taujet( tree, fs );
   } else {
     branchesEvtSel_jet_dijet( tree, fs );
   }
@@ -49,6 +52,8 @@ bool RecHitAnalyzer::runEvtSel_jet ( const edm::Event& iEvent, const edm::EventS
   bool hasPassed;
   if ( jetSelection == "dijet_gg_qq" ) {
     hasPassed = runEvtSel_jet_dijet_gg_qq( iEvent, iSetup );
+  } else if ( jetSelection == "taujet" ) {
+    hasPassed = runEvtSel_jet_taujet( iEvent, iSetup );
   } else {
     hasPassed = runEvtSel_jet_dijet( iEvent, iSetup );
   }
@@ -184,6 +189,8 @@ bool RecHitAnalyzer::runEvtSel_jet ( const edm::Event& iEvent, const edm::EventS
 
   if ( jetSelection == "dijet_gg_qq" ) {
     fillEvtSel_jet_dijet_gg_qq( iEvent, iSetup );
+  } else if ( jetSelection == "taujet" ) {
+    fillEvtSel_jet_taujet( iEvent, iSetup );
   } else {
     fillEvtSel_jet_dijet( iEvent, iSetup );
   }

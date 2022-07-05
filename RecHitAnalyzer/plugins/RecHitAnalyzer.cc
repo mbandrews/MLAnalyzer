@@ -284,6 +284,126 @@ int RecHitAnalyzer::getTruthLabel(const reco::PFJetRef& recJet, edm::Handle<reco
   return -99;
 }
 
+std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection> genParticles, bool include_leptonic, bool use_prompt) {
+  // Warning: returned tau type works for taus decayed by Pythia8 but might not work for other generators e.g tauola!
+  std::vector<reco::GenTau *> taus;
+  for (reco::GenParticleCollection::const_iterator iGen = genParticles->begin();
+       iGen != genParticles->end();
+       ++iGen) {
+    bool is_prompt=true; 
+    bool is_last_copy=iGen->statusFlags().isLastCopy();
+    if(use_prompt){
+      is_prompt=iGen->statusFlags().isPrompt();
+    }
+    if (abs(iGen->pdgId()) == 15 && is_prompt && is_last_copy) {
+      bool has_tau_daughter = false;
+      bool has_lepton_daughter = false;
+      unsigned count_pi0 =  0, count_pi = 0, count_tot = 0, count_k = 0, count_rho = 0;
+      math::XYZPoint vtx = math::XYZPoint(0, 0, 0);
+      bool foundVertex = false;
+      math::XYZTLorentzVector nuvec;
+      math::XYZTLorentzVector charge_vec;
+      math::XYZTLorentzVector neutral_vec;
+      math::XYZTLorentzVector lead_pi0_vec;
+      for (const reco::GenParticleRef& daughter : iGen->daughterRefVector()) {
+        if (abs(daughter->pdgId()) == 15) has_tau_daughter = true;
+        if (abs(daughter->pdgId()) == 11 || abs(daughter->pdgId()) == 13) has_lepton_daughter = true;
+        if (!foundVertex) {
+          // take tau vertex from one of the decay products since this will be displaced from the PV
+          vtx = daughter->vertex();
+          foundVertex = true; 
+        }
+        unsigned pdgId = abs(daughter->pdgId());
+        if(pdgId == 111) {
+          count_pi0++;
+          neutral_vec+=daughter->p4();
+          if(daughter->pt() > lead_pi0_vec.pt()) lead_pi0_vec = daughter->p4();
+        } 
+        if(pdgId == 211) count_pi++;
+        if(pdgId == 213) count_rho++;
+        if(pdgId == 321) count_k++;
+        if(daughter->charge()!=0) charge_vec+=daughter->p4();
+        if(pdgId!=12&&pdgId!=14&&pdgId!=16) {
+          count_tot++;
+        } else {
+          nuvec+=daughter->p4();
+        }
+      }
+      if (has_tau_daughter) continue;
+      if (has_lepton_daughter && !include_leptonic) continue;
+      int tauFlag = -1;
+      if(count_tot==1 && count_pi==1 && count_pi0==0) tauFlag=0;
+      if(count_tot==1 && count_pi==0 && count_k==1 && count_pi0==0) tauFlag=20;
+      if(count_tot==2 && count_pi==1 && count_pi0==1) tauFlag=1; 
+      if(count_tot==2 && count_rho==1) tauFlag=21; 
+      if(count_tot==3 && count_pi==1 && count_pi0==2) tauFlag=2;
+      if(count_tot==3 && count_pi==3 && count_pi0==0) tauFlag=10;
+      if(count_tot==4 && count_pi==3 && count_pi0==1) tauFlag=11;
+      reco::GenTau *tau = new reco::GenTau(iGen->charge(), iGen->p4(), vtx, iGen->pdgId(), iGen->status(), true);   
+      tau->set_decay_mode(tauFlag);
+      tau->set_charge_p4(charge_vec); 
+      tau->set_neutral_p4(neutral_vec);
+      tau->set_lead_pi0_p4(lead_pi0_vec); 
+      tau->set_nu_p4(nuvec);
+      taus.push_back(tau);
+    }
+  }
+  return taus;
+}
+
+
+std::pair<int, reco::GenTau*> RecHitAnalyzer::getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch , bool debug ){
+  if ( debug ) {
+    std::cout << " Mathcing reco jetPt:" << recJet->pt() << " jetEta:" << recJet->eta() << " jetPhi:" << recJet->phi() << std::endl;
+  }
+  std::vector<reco::GenTau *> gen_taus = BuildTauJets(genParticles, false,true);
+  std::vector<const reco::GenParticle *> gen_leptons;
+  for (reco::GenParticleCollection::const_iterator iGen = genParticles->begin();
+       iGen != genParticles->end();
+       ++iGen) {
+         if (((abs(iGen->pdgId()) == 11 )||(abs(iGen->pdgId()) == 13)) && iGen->pt() > 8. && (iGen->statusFlags().isPrompt() || iGen->statusFlags().isDirectPromptTauDecayProduct())) gen_leptons.push_back(&(*iGen));
+  }
+
+
+  reco::GenTau *gen_tau = new reco::GenTau(); 
+  float minDR=-1.;
+  int match_pdgId=0;
+
+  // match to light leptons
+  for (auto part : gen_leptons) {
+ 
+    float dR = reco::deltaR( recJet->eta(),recJet->phi(), part->eta(),part->phi() );
+
+    if ( debug ) std::cout << " \t >> dR " << dR << " id:" << part->pdgId() << " status:" << part->status() << " nDaught:" << part->numberOfDaughters() << " pt:"<< part->pt() << " eta:" << part->eta() << " phi:" << part->phi() << " nMoms:" << part->numberOfMothers()<< std::endl;
+
+    if ( dR > dRMatch ) continue;
+    if(minDR<0 || dR<minDR) {
+      minDR = dR;
+      match_pdgId = part->pdgId();
+      if ( debug ) std::cout << " Matched pdgID " << part->pdgId() << std::endl;
+    }
+  }
+
+  // match to taus
+  for (auto part : gen_taus) {
+
+    float dR = reco::deltaR( recJet->eta(),recJet->phi(), part->vis_p4().eta(),part->vis_p4().phi() );
+
+    if ( debug ) std::cout << " \t >> dR " << dR << " id:" << part->pdgId() << " status:" << part->status() << " nDaught:" << part->numberOfDaughters() << " pt:"<< part->vis_p4().pt() << " eta:" << part->vis_p4().eta() << " phi:" << part->vis_p4().phi() << " nMoms:" << part->numberOfMothers()<< std::endl;
+
+    if ( dR > dRMatch ) continue;
+    if(minDR<0 || dR<minDR) {
+      minDR = dR;
+      match_pdgId = part->pdgId();
+      gen_tau = part;
+      if ( debug ) std::cout << " Matched pdgID " << part->pdgId() << std::endl;
+    }
+  }
+
+  if(minDR>=0) return std::make_pair(match_pdgId, gen_tau);
+  else return std::make_pair(6, gen_tau);
+}
+
 
 float RecHitAnalyzer::getBTaggingValue(const reco::PFJetRef& recJet, edm::Handle<edm::View<reco::Jet> >& recoJetCollection, edm::Handle<reco::JetTagCollection>& btagCollection, float dRMatch, bool debug ){
 

@@ -77,6 +77,7 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/BTauReco/interface/JetTag.h"
 #include "DataFormats/BTauReco/interface/CandIPTagInfo.h"
+#include "MLAnalyzer/RecHitAnalyzer/interface/GenTau.h"
 
 //
 // class declaration
@@ -175,6 +176,7 @@ class RecHitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     const reco::PFCandidate* getPFCand(edm::Handle<PFCollection> pfCands, float eta, float phi, float& minDr, bool debug = false);
     const reco::Track* getTrackCand(edm::Handle<reco::TrackCollection> trackCands, float eta, float phi, float& minDr, bool debug = false);
     int   getTruthLabel(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch = 0.4, bool debug = false);
+    std::pair<int, reco::GenTau*>  getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch = 0.4, bool debug = false);
     float getBTaggingValue(const reco::PFJetRef& recJet, edm::Handle<edm::View<reco::Jet> >& recoJetCollection, edm::Handle<reco::JetTagCollection>& btagCollection, float dRMatch = 0.1, bool debug= false );
 
     // Jet level functions
@@ -187,10 +189,13 @@ class RecHitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     std::vector<int> vJetIdxs;
     void branchesEvtSel_jet_dijet      ( TTree*, edm::Service<TFileService>& );
     void branchesEvtSel_jet_dijet_gg_qq( TTree*, edm::Service<TFileService>& );
+    void branchesEvtSel_jet_taujet      ( TTree*, edm::Service<TFileService>& );
     bool runEvtSel_jet_dijet      ( const edm::Event&, const edm::EventSetup& );
     bool runEvtSel_jet_dijet_gg_qq( const edm::Event&, const edm::EventSetup& );
+    bool runEvtSel_jet_taujet      ( const edm::Event&, const edm::EventSetup& );
     void fillEvtSel_jet_dijet      ( const edm::Event&, const edm::EventSetup& );
     void fillEvtSel_jet_dijet_gg_qq( const edm::Event&, const edm::EventSetup& );
+    void fillEvtSel_jet_taujet      ( const edm::Event&, const edm::EventSetup& );
 
     int nTotal, nPassed;
 

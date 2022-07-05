@@ -31,16 +31,16 @@ namespace reco {
     // get p4 for the visible component of the tau
     LorentzVector vis_p4() { return this->p4()-nu_p4_; }
     // get tau decay mode
-    int decay_mode(int s) { return dm_; }
+    int decay_mode() { return dm_; }
 
 
   private:
 
-    LorentzVector charge_p4_;
-    LorentzVector neutral_p4_;
-    LorentzVector lead_pi0_p4_;
-    LorentzVector nu_p4_;
-    int dm_;
+    LorentzVector charge_p4_ = LorentzVector(0,0,0,0);
+    LorentzVector neutral_p4_ = LorentzVector(0,0,0,0);
+    LorentzVector lead_pi0_p4_= LorentzVector(0,0,0,0);
+    LorentzVector nu_p4_= LorentzVector(0,0,0,0);
+    int dm_=-1;
 
   };
 
