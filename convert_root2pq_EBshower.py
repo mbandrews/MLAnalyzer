@@ -54,7 +54,7 @@ if args.wgt_files is not None:
 
 rhTreeStr = args.infile
 print " >> Input file:",rhTreeStr
-rhTree = ROOT.TChain("fevt/RHTree")
+rhTree = ROOT.TChain("recHitAnalyzer/RHTree")
 for f in rhTreeStr:
   rhTree.Add(f)
 nEvts = rhTree.GetEntries()

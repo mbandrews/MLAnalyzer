@@ -316,13 +316,13 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
         unsigned pdgId = abs(daughter->pdgId());
         if(pdgId == 111) {
           count_pi0++;
-          neutral_vec+=daughter->p4();
+          neutral_vec+=daughter->p4(); // LR store each here?
           if(daughter->pt() > lead_pi0_vec.pt()) lead_pi0_vec = daughter->p4();
         } 
         if(pdgId == 211) count_pi++;
         if(pdgId == 213) count_rho++;
         if(pdgId == 321) count_k++;
-        if(daughter->charge()!=0) charge_vec+=daughter->p4();
+        if(daughter->charge()!=0) charge_vec+=daughter->p4(); // LR store each here?
         if(pdgId!=12&&pdgId!=14&&pdgId!=16) {
           count_tot++;
         } else {
@@ -341,6 +341,7 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
       if(count_tot==4 && count_pi==3 && count_pi0==1) tauFlag=11;
       reco::GenTau *tau = new reco::GenTau(iGen->charge(), iGen->p4(), vtx, iGen->pdgId(), iGen->status(), true);   
       tau->set_decay_mode(tauFlag);
+      // add some vars here?
       tau->set_charge_p4(charge_vec); 
       tau->set_neutral_p4(neutral_vec);
       tau->set_lead_pi0_p4(lead_pi0_vec); 

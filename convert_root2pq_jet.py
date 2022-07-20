@@ -1,18 +1,26 @@
 import pyarrow.parquet as pq
 import pyarrow as pa # pip install pyarrow==0.7.1
+print("pyarrow imported")
 import ROOT
+print("ROOT imported")
 import numpy as np
 import glob, os
 from skimage.measure import block_reduce # pip install scikit-image
 from numpy.lib.stride_tricks import as_strided
+print("Numpy related packages imported")
 
 import argparse
+
+print("Successfully installed packages")
+
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('-i', '--infile', default='output_qqgg.root', type=str, help='Input root file.')
 parser.add_argument('-o', '--outdir', default='.', type=str, help='Output pq file dir.')
 parser.add_argument('-d', '--decay', default='test', type=str, help='Decay name.')
 parser.add_argument('-n', '--idx', default=0, type=int, help='Input root file index.')
 args = parser.parse_args()
+
+print("Parsed arguments")
 
 def upsample_array(x, b0, b1):
 
@@ -63,9 +71,12 @@ def crop_jet(imgECAL, iphi, ieta, jet_shape=125):
 
     return img_crop
 
-rhTreeStr = args.infile 
-rhTree = ROOT.TChain("fevt/RHTree")
+rhTreeStr = args.infile
+print("Loaded file") 
+rhTree = ROOT.TChain("recHitAnalyzer/RHTree") # change fevt/RHTree to just RHTree
+print("Created tree")
 rhTree.Add(rhTreeStr)
+print("Added String")
 nEvts = rhTree.GetEntries()
 assert nEvts > 0
 print " >> Input file:",rhTreeStr
@@ -102,20 +113,31 @@ for iEvt in range(iEvtStart,iEvtEnd):
     data['X_CMSII'] = np.stack([TracksAtECAL_pt, ECAL_energy, HBHE_energy], axis=0) # (3, 280, 360)
 
     # Jet attributes 
-    ys = rhTree.jetIsQuark
+    # ys = rhTree.jetIsQuark # Doesn't exist
     pts = rhTree.jetPt
+
+    #add values
+    phis = rhTree.jetPhi
+    etas = rhTree.jetEta
+
     iphis = rhTree.jetSeed_iphi
     ietas = rhTree.jetSeed_ieta
-    pdgIds = rhTree.jetPdgIds
-    njets = len(ys)
+    jet_truthLabel = rhTree.jet_truthLabel
+    DM = rhTree.jet_truthDM #add DM
+    # pdgIds = rhTree.jetPdgIds # Doesn't exist
+    njets = len(pts) #change to pt since y doesn't exist
 
     for i in range(njets):
 
-        data['y'] = ys[i]
+        # data['y'] = ys[i] # doesnt exist
         data['pt'] = pts[i]
         data['iphi'] = iphis[i]
         data['ieta'] = ietas[i]
-        data['pdgId'] = pdgIds[i]
+        data['phi'] = phis[i]
+        data['eta'] = etas[i]
+        data['DM'] = DM[i]
+        data["truth"] = jet_truthLabel[i]
+        # data['pdgId'] = pdgIds[i] # doesn't exist
         data['X_jet'] = crop_jet(data['X_CMSII'], data['iphi'], data['ieta']) # (3, 125, 125)
 
         # Create pyarrow.Table
@@ -141,7 +163,8 @@ print "========================================================"
 pqIn = pq.ParquetFile(outStr)
 print(pqIn.metadata)
 print(pqIn.schema)
-X = pqIn.read_row_group(0, columns=['y','pt','iphi','ieta','pdgId']).to_pydict()
+# X = pqIn.read_row_group(0, columns=['y','pt','iphi','ieta','pdgId']).to_pydict()
+X = pqIn.read_row_group(0, columns=['pt','iphi','ieta']).to_pydict() # RM vars
 print(X)
 #X = pqIn.read_row_group(0, columns=['X_jet.list.item.list.item.list.item']).to_pydict()['X_jet'] # read row-by-row 
 #X = pqIn.read(['X_jet.list.item.list.item.list.item', 'y']).to_pydict()['X_jet'] # read entire column(s)
