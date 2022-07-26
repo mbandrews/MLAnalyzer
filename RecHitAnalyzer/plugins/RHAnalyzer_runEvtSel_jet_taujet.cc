@@ -20,6 +20,12 @@ vector<float> vTaujet_jet_neutral_pT_;
 vector<float> vTaujet_jet_neutral_m0_;
 vector<float> vTaujet_jet_neutral_eta_;
 vector<float> vTaujet_jet_neutral_phi_;
+vector<vector<float>> vTaujet_jet_charged_indv_pt_;
+vector<vector<float>> vTaujet_jet_neutral_indv_pt_;
+vector<vector<float>> vTaujet_jet_charged_indv_eta_;
+vector<vector<float>> vTaujet_jet_neutral_indv_eta_;
+vector<vector<float>> vTaujet_jet_charged_indv_phi_;
+vector<vector<float>> vTaujet_jet_neutral_indv_phi_;
 
 
 // Initialize branches _____________________________________________________//
@@ -42,6 +48,12 @@ void RecHitAnalyzer::branchesEvtSel_jet_taujet( TTree* tree, edm::Service<TFileS
   tree->Branch("neutralM", &vTaujet_jet_neutral_m0_);
   tree->Branch("neutralEta", &vTaujet_jet_neutral_eta_);
   tree->Branch("neutralPhi", &vTaujet_jet_neutral_phi_);
+  tree->Branch("jet_charged_indv_pt", &vTaujet_jet_charged_indv_pt_);
+  tree->Branch("jet_neutral_indv_pt", &vTaujet_jet_neutral_indv_pt_);
+  tree->Branch("jet_charged_indv_eta", &vTaujet_jet_charged_indv_eta_);
+  tree->Branch("jet_neutral_indv_eta", &vTaujet_jet_neutral_indv_eta_);
+  tree->Branch("jet_charged_indv_phi", &vTaujet_jet_charged_indv_phi_);
+  tree->Branch("jet_neutral_indv_phi", &vTaujet_jet_neutral_indv_phi_);
 
 } // branchesEvtSel_jet_taujet()
 
@@ -63,7 +75,12 @@ bool RecHitAnalyzer::runEvtSel_jet_taujet( const edm::Event& iEvent, const edm::
   vTaujet_jet_neutral_m0_.clear();
   vTaujet_jet_neutral_eta_.clear();
   vTaujet_jet_neutral_phi_.clear();
-
+  vTaujet_jet_charged_indv_pt_.clear();
+  vTaujet_jet_neutral_indv_pt_.clear();
+  vTaujet_jet_charged_indv_eta_.clear();
+  vTaujet_jet_neutral_indv_eta_.clear();
+  vTaujet_jet_charged_indv_phi_.clear();
+  vTaujet_jet_neutral_indv_phi_.clear();
 
   int nJet = 0;
   // Loop over jets
@@ -163,26 +180,70 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     float neutral_M=0.;
     float neutral_eta=0.;
     float neutral_phi=0.;
+    vector<float> charge_pt_indv;
+    vector<float> neutral_pt_indv;
+    vector<float> charge_eta_indv;
+    vector<float> neutral_eta_indv;
+    vector<float> charge_phi_indv;
+    vector<float> neutral_phi_indv;
 
-    std::cout << truthLabel << std::endl;
+    // std::cout << truthLabel << std::endl;
 
     if (abs(truthLabel)==15) {
-      std::cout << "test" << std::endl; 
+      // std::cout << "test" << std::endl; 
       truthDM = match.second->decay_mode();
-      neutral_pT = match.second->vis_p4().pt();
-      neutral_M = match.second->vis_p4().mass();
-      neutral_eta = match.second->vis_p4().eta();
-      neutral_phi = match.second->vis_p4().phi();
+      // Q: why are the neutral pT vars using the vis_p4?
+      neutral_pT = match.second->neutral_p4().pt();
+      neutral_M = match.second->neutral_p4().mass();
+      neutral_eta = match.second->neutral_p4().eta();
+      neutral_phi = match.second->neutral_p4().phi();
+      // could store all Lorentz vectors instead?
+      // std::cout<< "Storing the individual charged particle info" << std::endl;
+      for (const auto &charged : match.second->charge_p4_indv()){
+          charge_pt_indv.push_back(charged.pt());
+          charge_eta_indv.push_back(charged.eta());
+          charge_phi_indv.push_back(charged.phi());
+        }
+      // std::cout << "DEBUG: vector size" << match.second->neutral_p4_indv().size() << std::endl; 
+      if (match.second->neutral_p4_indv().size()>0){
+        // std::cout<< "Storing the individual neutral particle info (" << match.second->neutral_p4_indv().size() << ")" << std::endl;
+        for (const auto &neutral : match.second->neutral_p4_indv()){
+            neutral_pt_indv.push_back(neutral.pt());
+            neutral_eta_indv.push_back(neutral.eta());
+            neutral_phi_indv.push_back(neutral.phi());
+          }
+      } else{
+        neutral_pt_indv.push_back(-1);
+        neutral_eta_indv.push_back(-100); 
+        neutral_phi_indv.push_back(-100);
+        
+      }
+      
+    } else{
+      charge_pt_indv.push_back(-1);
+      neutral_pt_indv.push_back(-1);
+      charge_eta_indv.push_back(-100);
+      neutral_eta_indv.push_back(-100);
+      charge_phi_indv.push_back(-100);
+      neutral_phi_indv.push_back(-100);
     }
+    
 
-    std::cout << neutral_pT << std::endl;
+
+    // std::cout << neutral_pT << std::endl;
 
     vTaujet_jet_truthDM_.push_back(truthDM);
     vTaujet_jet_neutral_pT_.push_back(neutral_pT);
     vTaujet_jet_neutral_m0_.push_back(neutral_M);
     vTaujet_jet_neutral_eta_.push_back(neutral_eta);
     vTaujet_jet_neutral_phi_.push_back(neutral_phi);
-
+    // push back vector
+    vTaujet_jet_charged_indv_pt_.push_back(charge_pt_indv);
+    vTaujet_jet_neutral_indv_pt_.push_back(neutral_pt_indv);
+    vTaujet_jet_charged_indv_eta_.push_back(charge_eta_indv);
+    vTaujet_jet_neutral_indv_eta_.push_back(neutral_eta_indv);
+    vTaujet_jet_charged_indv_phi_.push_back(charge_phi_indv);
+    vTaujet_jet_neutral_indv_phi_.push_back(neutral_phi_indv);
   }//vJetIdxs
 
 

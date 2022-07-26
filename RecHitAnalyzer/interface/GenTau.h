@@ -19,6 +19,12 @@ namespace reco {
     void set_nu_p4(LorentzVector s) { nu_p4_ = s; }
     // set tau decay mode
     void set_decay_mode(int s) { dm_ = s; }
+    // set vector of individual charged 
+    void set_charge_p4_indv(std::vector<LorentzVector> s) { charge_p4_indv_ = s; }
+    // set vector of individual neutral
+    void set_neutral_p4_indv(std::vector<LorentzVector> s) { neutral_p4_indv_ = s; }
+
+
 
     // get p4 for charged component of tau
     LorentzVector charge_p4() { return charge_p4_; }
@@ -32,7 +38,10 @@ namespace reco {
     LorentzVector vis_p4() { return this->p4()-nu_p4_; }
     // get tau decay mode
     int decay_mode() { return dm_; }
-
+    // get vector of charged p4 contributions
+    std::vector<LorentzVector> charge_p4_indv() { return charge_p4_indv_; }
+    // get vector of charged p4 contributions
+    std::vector<LorentzVector> neutral_p4_indv() { return neutral_p4_indv_; }
 
   private:
 
@@ -40,6 +49,8 @@ namespace reco {
     LorentzVector neutral_p4_ = LorentzVector(0,0,0,0);
     LorentzVector lead_pi0_p4_= LorentzVector(0,0,0,0);
     LorentzVector nu_p4_= LorentzVector(0,0,0,0);
+    std::vector<LorentzVector> charge_p4_indv_;
+    std::vector<LorentzVector> neutral_p4_indv_;
     int dm_=-1;
 
   };

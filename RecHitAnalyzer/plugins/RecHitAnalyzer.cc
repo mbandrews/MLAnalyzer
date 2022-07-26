@@ -305,6 +305,9 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
       math::XYZTLorentzVector charge_vec;
       math::XYZTLorentzVector neutral_vec;
       math::XYZTLorentzVector lead_pi0_vec;
+      // Add vector of charged
+      std::vector<math::XYZTLorentzVector> charge_vec_all;
+      std::vector<math::XYZTLorentzVector> neutral_vec_all;
       for (const reco::GenParticleRef& daughter : iGen->daughterRefVector()) {
         if (abs(daughter->pdgId()) == 15) has_tau_daughter = true;
         if (abs(daughter->pdgId()) == 11 || abs(daughter->pdgId()) == 13) has_lepton_daughter = true;
@@ -316,13 +319,18 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
         unsigned pdgId = abs(daughter->pdgId());
         if(pdgId == 111) {
           count_pi0++;
-          neutral_vec+=daughter->p4(); // LR store each here?
+          neutral_vec+=daughter->p4(); // LR store each here
+          // std::cout << "DEBUG: Storing neural particle pT" << std::endl;
+          neutral_vec_all.push_back(daughter->p4());
           if(daughter->pt() > lead_pi0_vec.pt()) lead_pi0_vec = daughter->p4();
         } 
         if(pdgId == 211) count_pi++;
         if(pdgId == 213) count_rho++;
         if(pdgId == 321) count_k++;
-        if(daughter->charge()!=0) charge_vec+=daughter->p4(); // LR store each here?
+        if(daughter->charge()!=0) {
+          charge_vec+=daughter->p4(); // LR store each here
+          charge_vec_all.push_back(daughter->p4());
+        }
         if(pdgId!=12&&pdgId!=14&&pdgId!=16) {
           count_tot++;
         } else {
@@ -346,6 +354,9 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
       tau->set_neutral_p4(neutral_vec);
       tau->set_lead_pi0_p4(lead_pi0_vec); 
       tau->set_nu_p4(nuvec);
+      // set vector of charges:
+      tau->set_charge_p4_indv(charge_vec_all);
+      tau->set_neutral_p4_indv(neutral_vec_all);
       taus.push_back(tau);
     }
   }
