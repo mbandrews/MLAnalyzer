@@ -1,5 +1,7 @@
 
 #include "MLAnalyzer/RecHitAnalyzer/interface/RecHitAnalyzer.h"
+#include "CommonTools/BaseParticlePropagator/interface/BaseParticlePropagator.h"
+#include "CommonTools/BaseParticlePropagator/interface/RawParticle.h"
 
 // Fill Tracks in EB+EE ////////////////////////////////
 // Store tracks in EB+EE projection
@@ -149,6 +151,8 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
   edm::Handle<reco::TrackCollection> tracksH_;
   iEvent.getByToken( trackCollectionT_, tracksH_ );
 
+
+
   // Provides access to global cell position
   edm::ESHandle<CaloGeometry> caloGeomH_;
   iSetup.get<CaloGeometryRecord>().get( caloGeomH_ );
@@ -159,6 +163,9 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
   const reco::VertexCollection& vtxs = *vertexInfo;
 
   reco::Track::TrackQuality tkQt_ = reco::Track::qualityByName("highPurity");
+
+  edm::ESHandle<MagneticField> magfield;
+  iSetup.get<IdealMagneticFieldRecord>().get(magfield);
 
   for ( reco::TrackCollection::const_iterator iTk = tracksH_->begin();
         iTk != tracksH_->end(); ++iTk ) {
@@ -173,6 +180,22 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
     d0sig = d0/iTk->dxyError();
     z0sig = z0/iTk->dzError();
 
+    // get B field
+    double magneticField = (magfield.product() ? magfield.product()->inTesla(GlobalPoint(iTk->vx(), iTk->vy(), iTk->vz())).z() : 0.0);
+    math::XYZTLorentzVector  track_p4(iTk->px(),iTk->py(),iTk->pz(),sqrt(pow(iTk->p(),2)+0.14*0.14));
+    //std::cout << track_p4.E() << "  " << track_p4.M() << std::endl;
+    BaseParticlePropagator propagator = BaseParticlePropagator(
+        RawParticle(track_p4,
+                    math::XYZTLorentzVector(iTk->vx(), iTk->vy(), iTk->vz(), 0.),
+                    iTk->charge()),
+        0.,
+        0.,
+        magneticField);
+    propagator.propagateToEcalEntrance(false);
+    //position = propagator.particle().vertex().Vect();
+    auto position = propagator.particle().vertex().Vect();
+    //std::cout << position.X() << "  " << position.Y() << "  " << position.X() << std::endl;
+
     if ( std::abs(eta) > 3. ) continue;
 
     DetId id( spr::findDetIdECAL( caloGeom, eta, phi, false ) );
@@ -180,6 +203,21 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
       EBDetId ebId( id );
       iphi_ = ebId.iphi() - 1;
       ieta_ = ebId.ieta() > 0 ? ebId.ieta()-1 : ebId.ieta();
+
+      DetId id_2( spr::findDetIdECAL( caloGeom, position.eta(), position.phi(), false ) );
+      EBDetId ebId_2( id_2 );
+      int iphi_2_ = ebId_2.iphi() - 1;
+      int ieta_2_ = ebId_2.ieta() > 0 ? ebId_2.ieta()-1 : ebId_2.ieta();
+
+      if(pt>10){
+        std::cout << "!!!!!!" << std::endl;
+        std::cout << pt << std::endl; 
+        std::cout << phi << "  " << eta << std::endl;
+        std::cout << iphi_ << "  " << ieta_ << std::endl;
+        std::cout << position.phi() << "  " << position.eta() << std::endl;
+        std::cout << iphi_2_ << "  " << ieta_2_ << std::endl;
+      }
+
       // Fill histograms for monitoring
       hTracks_EB->Fill( iphi_, ieta_ );
       hTracksPt_EB->Fill( iphi_, ieta_, pt );

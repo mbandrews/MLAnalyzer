@@ -12,7 +12,7 @@ opts.register('file',
 'root://xrootd.unl.edu//store/mc/RunIISummer20UL18RECO/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/AODSIM/106X_upgrade2018_realistic_v11_L1v1-v1/260000/1880AB56-620B-2247-A593-BD239DC4E805.root',
 parser.VarParsing.multiplicity.singleton,
 parser.VarParsing.varType.string, "input file")
-opts.register('globalTag', '102X_upgrade2018_realistic_v20', parser.VarParsing.multiplicity.singleton,
+opts.register('globalTag', '106X_upgrade2018_realistic_v16_L1v1', parser.VarParsing.multiplicity.singleton,
     parser.VarParsing.varType.string, "global tag")
 opts.register('isData', 0, parser.VarParsing.multiplicity.singleton,
     parser.VarParsing.varType.int, "Process as data?")
@@ -61,6 +61,7 @@ process.options   = cms.untracked.PSet(
     FailPath=cms.untracked.vstring("FileReadError"),
     wantSummary = cms.untracked.bool(True),
 )
+
 
 ################################################################
 # 
