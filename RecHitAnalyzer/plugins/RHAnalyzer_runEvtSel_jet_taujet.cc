@@ -171,6 +171,28 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     vTaujet_jet_eta_.push_back( thisJet->eta() );
     vTaujet_jet_phi_.push_back( thisJet->phi() );
 
+    std::cout<< "PFjet core info stored" << std::endl;
+
+    std::vector<reco::PFCandidatePtr> pfCands = thisJet->getPFConstituents();
+    std::cout<< "Obtained vector of PF candidates" << std::endl;
+
+    math::XYZTLorentzVector neutral_PF;
+
+    for (const auto &pfC : pfCands){
+      
+      if (pfC->particleId()==4){
+        
+        auto n_p4_vec = pfC->p4();
+        neutral_PF += n_p4_vec;
+        // std::cout<< "DEBUG: Adding pT: " << n_p4_vec.pt() << std::endl;
+        // std::cout<< "Photon with: raw ECAL energy: " << pfC->rawEcalEnergy() << " Corrected ECAL energy: " << pfC->ecalEnergy()  << " pT (from Lorentz vec): " << p4_vec.pt() << " eta: " << p4_vec.eta() << " phi: " << p4_vec.phi() << std::endl;
+      } else if (pfC->particleId()==1){
+        auto c_p4_vec = pfC->p4();
+        std::cout<< "Charged hadron with pT: " << c_p4_vec.pt() << " ID" << pfC->pdgId() << std::endl;
+      }
+        }
+    std::cout << "Total neutral component of PF jet: pT: " << neutral_PF.pt() << " eta: " << neutral_PF.eta() << " phi: " << neutral_PF.phi() << std::endl;
+
     std::pair<int, reco::GenTau*> match = getTruthLabelForTauJets(thisJet,genParticles,0.4, false);
     int truthLabel = match.first;
     vTaujet_jet_truthLabel_      .push_back(truthLabel);

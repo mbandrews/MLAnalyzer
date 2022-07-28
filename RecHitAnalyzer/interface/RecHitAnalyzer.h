@@ -172,12 +172,15 @@ class RecHitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     void fillTRKvolumeAtEBEE( const edm::Event&, const edm::EventSetup& );
     //void fillTRKvolumeAtECAL( const edm::Event&, const edm::EventSetup& );
     void fillJetInfoAtECALstitched   ( const edm::Event&, const edm::EventSetup& );
+    void TrackMatching ( const edm::Event& iEvent, const edm::EventSetup& iSetup );
 
     const reco::PFCandidate* getPFCand(edm::Handle<PFCollection> pfCands, float eta, float phi, float& minDr, bool debug = false);
     const reco::Track* getTrackCand(edm::Handle<reco::TrackCollection> trackCands, float eta, float phi, float& minDr, bool debug = false);
     int   getTruthLabel(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch = 0.4, bool debug = false);
     std::pair<int, reco::GenTau*>  getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch = 0.4, bool debug = false);
     float getBTaggingValue(const reco::PFJetRef& recJet, edm::Handle<edm::View<reco::Jet> >& recoJetCollection, edm::Handle<reco::JetTagCollection>& btagCollection, float dRMatch = 0.1, bool debug= false );
+    // PF to track matching
+    void matchTrackPF(edm::Handle<reco::TrackCollection> trackCands, edm::Handle<PFCollection> pfCands, bool debug = false);
 
     // Jet level functions
     std::string mode_;  // EventLevel / JetLevel

@@ -37,7 +37,7 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 process.load("Configuration.StandardSequences.MagneticField_cff")
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("EventTreeHTT.root"),
+    fileName = cms.string("Testing.root"),
     closeFileFast = cms.untracked.bool(True)
 )
 
@@ -45,7 +45,7 @@ process.TFileService = cms.Service("TFileService",
 # Message Logging, summary, and number of events
 ################################################################
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(200)
+    input = cms.untracked.int32(10)
 )
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1

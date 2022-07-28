@@ -30,6 +30,8 @@ RecHitAnalyzer::RecHitAnalyzer(const edm::ParameterSet& iConfig)
   jetCollectionT_         = consumes<reco::PFJetCollection>(iConfig.getParameter<edm::InputTag>("ak4PFJetCollection"));
   genJetCollectionT_      = consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("genJetCollection"));
   trackCollectionT_       = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("trackCollection"));
+
+  // PF collection loaded below
   pfCollectionT_          = consumes<PFCollection>(iConfig.getParameter<edm::InputTag>("pfCollection"));
   vertexCollectionT_       = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexCollection"));
 
@@ -142,6 +144,10 @@ RecHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //fillTRKvolumeAtECAL( iEvent, iSetup );
   fillJetInfoAtECALstitched( iEvent, iSetup );
 
+  // Track matching
+  TrackMatching( iEvent, iSetup );
+
+
   ////////////// 4-Momenta //////////
   //fillFC( iEvent, iSetup );
 
@@ -235,6 +241,53 @@ RecHitAnalyzer::getTrackCand(edm::Handle<reco::TrackCollection> trackCands, floa
   return minDRCand;  
 }
 
+void RecHitAnalyzer::matchTrackPF(edm::Handle<reco::TrackCollection> trackCands, edm::Handle<PFCollection> pfCands, bool debug){
+  // std::cout<< "Matching Tracks to PF Candidates" << std::endl;
+
+  // for ( PFCollection::const_iterator iPFC = pfCands->begin();
+  //       iPFC != pfCands->end(); ++iPFC ){
+          
+  //         // std::cout << iPFC->particleId() << std::endl; 
+  //         if (iPFC->particleId()==5){
+  //           std::cout<< "Neutral hadron" <<std::endl;
+  //         }
+  //       }
+
+      
+
+  // reco::TrackCollection::const_iterator iTk = trackCands->begin();
+  // std::cout<< "Initialised track iterator" << std::endl;
+  // if (iTk != trackCands->end()){
+  //   std::cout << "Reached end" << std::endl;
+  // } else{
+  //   ++iTk;
+  //   std::cout<< "Incremented track iterator" << std::endl;
+  // }
+  // int count_pf = 0;
+  // int count_tr = 0;
+  // for ( PFCollection::const_iterator iPFC = pfCands->begin();
+  //       iPFC != pfCands->end(); ++iPFC ){
+  //         for ( reco::TrackCollection::const_iterator iTk = trackCands->begin();
+  //             iTk != trackCands->end(); ++iTk ){
+  //               if (count_pf==0){
+  //                 ++ count_tr;
+  //                 auto Test = iTk->seedRef();
+  //                 // std::cout << iTk->seedRef() << std::endl;
+  //                 }
+  //               // std::cout << "Test loop 1" << std::endl;
+                
+  //               // if (iPFC->trackRef() == &iTk){
+  //               //   std::cout << "MATCH!" << std::endl;
+  //               // } 
+  //             }
+  //         // std::cout << "Test loop 2" << std::endl;
+  //         if (count_pf==0){std::cout << "Number of Tracks: " << count_tr << std::endl;}
+  //         ++ count_pf;
+          
+  //         // std::cout << iPFC->trackRef().key() << std::endl;
+  //       }
+  // std::cout << "Number of PF cands: " << count_pf << std::endl;
+}
 
 
 

@@ -47,7 +47,7 @@ void RecHitAnalyzer::fillHBHE ( const edm::Event& iEvent, const edm::EventSetup&
   float energy_;
   //float eta, GlobalPoint pos;
 
-  std::cout<< "Filling HBHE Rechits for Event"<< std::endl; 
+  // std::cout<< "Filling HBHE Rechits for Event"<< std::endl; 
   vHBHE_energy_EB_.assign( 2*HBHE_IPHI_NUM*HBHE_IETA_MAX_EB, 0. ); // LR HBHE filled here?
   vHBHE_energy_.assign( 2*HBHE_IPHI_NUM*(HBHE_IETA_MAX_HE-1), 0. );
   hEvt_HBHE_energy->Reset();
@@ -68,7 +68,7 @@ void RecHitAnalyzer::fillHBHE ( const edm::Event& iEvent, const edm::EventSetup&
         iRHit != HBHERecHitsH_->end(); ++iRHit ) {
 
     energy_ = iRHit->energy();
-    std::cout << energy_ << std::endl;
+    // std::cout << energy_ << std::endl;
     if ( energy_ <= zs ) continue;
     // Get detector id and convert to histogram-friendly coordinates
     // NOTE: HBHE detector ids are indexed by (ieta,iphi,depth)!
