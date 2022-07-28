@@ -252,7 +252,6 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     
 
 
-    // std::cout << neutral_pT << std::endl;
 
     vTaujet_jet_truthDM_.push_back(truthDM);
     vTaujet_jet_neutral_pT_.push_back(neutral_pT);
