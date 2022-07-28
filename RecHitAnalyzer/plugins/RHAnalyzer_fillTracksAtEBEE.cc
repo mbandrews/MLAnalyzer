@@ -171,8 +171,8 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
         iTk != tracksH_->end(); ++iTk ) {
     if ( !(iTk->quality(tkQt_)) ) continue;
 
-    eta   = iTk->eta();
-    phi   = iTk->phi();
+    //eta   = iTk->eta();
+    //phi   = iTk->phi();
     pt    = iTk->pt();
     qpt   = (iTk->charge()*pt);
     d0    =  ( !vtxs.empty() ? iTk->dxy(vtxs[0].position()) : iTk->dxy() );
@@ -181,9 +181,8 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
     z0sig = z0/iTk->dzError();
 
     // get B field
-    double magneticField = (magfield.product() ? magfield.product()->inTesla(GlobalPoint(iTk->vx(), iTk->vy(), iTk->vz())).z() : 0.0);
-    math::XYZTLorentzVector  track_p4(iTk->px(),iTk->py(),iTk->pz(),sqrt(pow(iTk->p(),2)+0.14*0.14));
-    //std::cout << track_p4.E() << "  " << track_p4.M() << std::endl;
+    double magneticField = (magfield.product() ? magfield.product()->inTesla(GlobalPoint(0., 0., 0.)).z() : 0.0);
+    math::XYZTLorentzVector  track_p4(iTk->px(),iTk->py(),iTk->pz(),sqrt(pow(iTk->p(),2)+0.14*0.14)); //setup 4-vector assuming mass is mass of charged pion
     BaseParticlePropagator propagator = BaseParticlePropagator(
         RawParticle(track_p4,
                     math::XYZTLorentzVector(iTk->vx(), iTk->vy(), iTk->vz(), 0.),
@@ -191,32 +190,17 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
         0.,
         0.,
         magneticField);
-    propagator.propagateToEcalEntrance(false);
-    //position = propagator.particle().vertex().Vect();
+    propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
     auto position = propagator.particle().vertex().Vect();
-    //std::cout << position.X() << "  " << position.Y() << "  " << position.X() << std::endl;
 
-    if ( std::abs(eta) > 3. ) continue;
+    if ( std::abs(position.eta()) > 3. ) continue;
 
-    DetId id( spr::findDetIdECAL( caloGeom, eta, phi, false ) );
+    //DetId id( spr::findDetIdECAL( caloGeom, eta, phi, false ) ); //old version - not sure how this was working for charged particles 
+    DetId id( spr::findDetIdECAL( caloGeom, position.eta(), position.phi(), false ) );
     if ( id.subdetId() == EcalBarrel ) {
       EBDetId ebId( id );
       iphi_ = ebId.iphi() - 1;
       ieta_ = ebId.ieta() > 0 ? ebId.ieta()-1 : ebId.ieta();
-
-      DetId id_2( spr::findDetIdECAL( caloGeom, position.eta(), position.phi(), false ) );
-      EBDetId ebId_2( id_2 );
-      int iphi_2_ = ebId_2.iphi() - 1;
-      int ieta_2_ = ebId_2.ieta() > 0 ? ebId_2.ieta()-1 : ebId_2.ieta();
-
-      if(pt>10){
-        std::cout << "!!!!!!" << std::endl;
-        std::cout << pt << std::endl; 
-        std::cout << phi << "  " << eta << std::endl;
-        std::cout << iphi_ << "  " << ieta_ << std::endl;
-        std::cout << position.phi() << "  " << position.eta() << std::endl;
-        std::cout << iphi_2_ << "  " << ieta_2_ << std::endl;
-      }
 
       // Fill histograms for monitoring
       hTracks_EB->Fill( iphi_, ieta_ );
