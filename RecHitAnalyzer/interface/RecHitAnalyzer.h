@@ -79,6 +79,9 @@
 #include "DataFormats/BTauReco/interface/CandIPTagInfo.h"
 #include "MLAnalyzer/RecHitAnalyzer/interface/GenTau.h"
 
+#include "MagneticField/Engine/interface/MagneticField.h"
+#include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+
 //
 // class declaration
 //
