@@ -164,10 +164,8 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     float neutral_eta=0.;
     float neutral_phi=0.;
 
-    std::cout << truthLabel << std::endl;
 
     if (abs(truthLabel)==15) {
-      std::cout << "test" << std::endl; 
       truthDM = match.second->decay_mode();
       neutral_pT = match.second->vis_p4().pt();
       neutral_M = match.second->vis_p4().mass();
@@ -175,7 +173,6 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
       neutral_phi = match.second->vis_p4().phi();
     }
 
-    std::cout << neutral_pT << std::endl;
 
     vTaujet_jet_truthDM_.push_back(truthDM);
     vTaujet_jet_neutral_pT_.push_back(neutral_pT);
