@@ -37,6 +37,8 @@ vector<float> vTaujet_jet_neutralsum_eta_;
 vector<float> vTaujet_jet_neutralsum_phi_;
 vector<float> vTaujet_jet_neutralsum_ieta_;
 vector<float> vTaujet_jet_neutralsum_iphi_;
+vector<float> vTaujet_jet_neutralsum_pt_;
+vector<float> vTaujet_jet_neutralsum_ECAL_;
 
 
 // Initialize branches _____________________________________________________//
@@ -74,6 +76,8 @@ void RecHitAnalyzer::branchesEvtSel_jet_taujet( TTree* tree, edm::Service<TFileS
   tree->Branch("neutralsum_phi", &vTaujet_jet_neutralsum_phi_);
   tree->Branch("neutralsum_ieta", &vTaujet_jet_neutralsum_ieta_);
   tree->Branch("neutralsum_iphi", &vTaujet_jet_neutralsum_iphi_);
+  tree->Branch("neutralsum_pt", &vTaujet_jet_neutralsum_pt_);
+  tree->Branch("neutralsum_ECAL", &vTaujet_jet_neutralsum_ECAL_);
 
   
 
@@ -111,7 +115,8 @@ bool RecHitAnalyzer::runEvtSel_jet_taujet( const edm::Event& iEvent, const edm::
   vTaujet_jet_neutralsum_eta_.clear();
   vTaujet_jet_neutralsum_iphi_.clear();
   vTaujet_jet_neutralsum_ieta_.clear();
-
+  vTaujet_jet_neutralsum_pt_.clear();
+  vTaujet_jet_neutralsum_ECAL_.clear();
 
   int nJet = 0;
   // Loop over jets
@@ -220,12 +225,15 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     reco::PFCandidatePtr leading_pfC;
 
 
+    float neutral_ECAL; // store ECAL energy deposits
+
     for (const auto &pfC : pfCands){
       
       if (pfC->particleId()==4){
         
         auto n_p4_vec = pfC->p4();
         neutral_PF += n_p4_vec;
+        neutral_ECAL =+ pfC->ecalEnergy(); // going with corrected energy for now
         // std::cout<< "DEBUG: Adding pT: " << n_p4_vec.pt() << std::endl;
         // std::cout<< "Photon with: raw ECAL energy: " << pfC->rawEcalEnergy() << " Corrected ECAL energy: " << pfC->ecalEnergy()  << " pT (from Lorentz vec): " << p4_vec.pt() << " eta: " << p4_vec.eta() << " phi: " << p4_vec.phi() << std::endl;
       } else if (pfC->particleId()==1){
@@ -358,6 +366,8 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     vTaujet_jet_neutralsum_phi_.push_back(neutral_PF.phi());
     vTaujet_jet_neutralsum_ieta_.push_back(neutral_ieta_);
     vTaujet_jet_neutralsum_iphi_.push_back(neutral_iphi_);
+    vTaujet_jet_neutralsum_pt_.push_back(neutral_PF.pt());
+    vTaujet_jet_neutralsum_ECAL_.push_back(neutral_ECAL);
 
     
   }//vJetIdxs
