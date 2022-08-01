@@ -70,6 +70,7 @@ process.options   = cms.untracked.PSet(
 process.recHitAnalyzer = cms.EDAnalyzer('RecHitAnalyzer'
     , reducedEBRecHitCollection = cms.InputTag('reducedEcalRecHitsEB')
     , reducedEERecHitCollection = cms.InputTag('reducedEcalRecHitsEE')
+    , reducedESRecHitCollection = cms.InputTag('reducedEcalRecHitsES')
     , reducedHBHERecHitCollection = cms.InputTag('reducedHcalRecHits:hbhereco')
     , genParticleCollection = cms.InputTag('genParticles')
     , gedPhotonCollection = cms.InputTag('gedPhotons')
@@ -83,6 +84,8 @@ process.recHitAnalyzer = cms.EDAnalyzer('RecHitAnalyzer'
     , jetTagCollection    = cms.InputTag("pfCombinedInclusiveSecondaryVertexV2BJetTags")
     , ipTagInfoCollection = cms.InputTag("pfImpactParameterTagInfos")
     , mode = cms.string("JetLevel")
+    , PFEBRecHitCollection = cms.InputTag('particleFlowRecHitECAL:Cleaned')
+    , PFHBHERecHitCollection = cms.InputTag('particleFlowRecHitHBHE:Cleaned')
 
     # Jet level cfg
     , nJets = cms.int32(-1)

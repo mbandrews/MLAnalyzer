@@ -10,6 +10,7 @@
  <use name="DataFormats/HcalRecHit"/>
  <use name="DataFormats/ParticleFlowCandidate"/>
  <use name="DataFormats/PatCandidates"/>
+ <use name="DataFormats/ParticleFlowReco"/>
  <use name="DataFormats/Common"/>
  <use name="CommonTools/BaseParticlePropagator"/>
  <use name="SimDataFormats/GeneratorProducts"/>

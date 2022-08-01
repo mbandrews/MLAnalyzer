@@ -21,6 +21,7 @@ RecHitAnalyzer::RecHitAnalyzer(const edm::ParameterSet& iConfig)
   //EBDigiCollectionT_      = consumes<EBDigiCollection>(iConfig.getParameter<edm::InputTag>("selectedEBDigiCollection"));
   //EBDigiCollectionT_      = consumes<EBDigiCollection>(iConfig.getParameter<edm::InputTag>("EBDigiCollection"));
   EERecHitCollectionT_    = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("reducedEERecHitCollection"));
+  ESRecHitCollectionT_    = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("reducedESRecHitCollection"));
   //EERecHitCollectionT_    = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EERecHitCollection"));
   HBHERecHitCollectionT_  = consumes<HBHERecHitCollection>(iConfig.getParameter<edm::InputTag>("reducedHBHERecHitCollection"));
   TRKRecHitCollectionT_   = consumes<TrackingRecHitCollection>(iConfig.getParameter<edm::InputTag>("trackRecHitCollection"));
@@ -36,6 +37,9 @@ RecHitAnalyzer::RecHitAnalyzer(const edm::ParameterSet& iConfig)
   recoJetsT_              = consumes<edm::View<reco::Jet> >(iConfig.getParameter<edm::InputTag>("recoJetsForBTagging"));
   jetTagCollectionT_      = consumes<reco::JetTagCollection>(iConfig.getParameter<edm::InputTag>("jetTagCollection"));
   ipTagInfoCollectionT_   = consumes<std::vector<reco::CandIPTagInfo> > (iConfig.getParameter<edm::InputTag>("ipTagInfoCollection"));
+  
+  PFEBRecHitCollectionT_    = consumes<std::vector<reco::PFRecHit>>(iConfig.getParameter<edm::InputTag>("PFEBRecHitCollection"));
+  PFHBHERecHitCollectionT_    = consumes<std::vector<reco::PFRecHit>>(iConfig.getParameter<edm::InputTag>("PFHBHERecHitCollection"));
 
   //johnda add configuration
   mode_      = iConfig.getParameter<std::string>("mode");
@@ -75,6 +79,8 @@ RecHitAnalyzer::RecHitAnalyzer(const edm::ParameterSet& iConfig)
   }
   branchesEB           ( RHTree, fs );
   branchesEE           ( RHTree, fs );
+  branchesES           ( RHTree, fs );
+  //branchesESatEE           ( RHTree, fs );
   branchesHBHE         ( RHTree, fs );
   branchesECALatHCAL   ( RHTree, fs );
   branchesECALstitched ( RHTree, fs );
@@ -83,14 +89,9 @@ RecHitAnalyzer::RecHitAnalyzer(const edm::ParameterSet& iConfig)
   branchesTracksAtECALstitched( RHTree, fs);
   branchesPFCandsAtEBEE(RHTree, fs);
   branchesPFCandsAtECALstitched( RHTree, fs);
-  //branchesTRKlayersAtEBEE(RHTree, fs);
-  //branchesTRKlayersAtECAL(RHTree, fs);
-  //branchesTRKvolumeAtEBEE(RHTree, fs);
-  //branchesTRKvolumeAtECAL(RHTree, fs);
   branchesJetInfoAtECALstitched( RHTree, fs);
+  branchesPFEB           ( RHTree, fs );
 
-  // For FC inputs
-  //RHTree->Branch("FC_inputs",      &vFC_inputs_);
 
 } // constructor
 //
@@ -101,6 +102,8 @@ RecHitAnalyzer::~RecHitAnalyzer()
   // (e.g. close files, deallocate resources etc.)
 
 }
+  
+
 //
 // member functions
 //
@@ -128,6 +131,8 @@ RecHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   fillEB( iEvent, iSetup );
   fillEE( iEvent, iSetup );
+  fillES( iEvent, iSetup );
+  //fillESatEE( iEvent, iSetup );
   fillHBHE( iEvent, iSetup );
   fillECALatHCAL( iEvent, iSetup );
   fillECALstitched( iEvent, iSetup );
@@ -141,6 +146,8 @@ RecHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //fillTRKvolumeAtEBEE( iEvent, iSetup );
   //fillTRKvolumeAtECAL( iEvent, iSetup );
   fillJetInfoAtECALstitched( iEvent, iSetup );
+  fillPFEB( iEvent, iSetup );
+  //fillPFHBHE( iEvent, iSetup );
 
   ////////////// 4-Momenta //////////
   //fillFC( iEvent, iSetup );
@@ -152,10 +159,9 @@ RecHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 } // analyze()
 
-
 // ------------ method called once each job just before starting event loop  ------------
-void 
-RecHitAnalyzer::beginJob()
+void
+RecHitAnalyzer::beginJob(const edm::EventSetup& iSetup)
 {
   nTotal = 0;
   nPassed = 0;
