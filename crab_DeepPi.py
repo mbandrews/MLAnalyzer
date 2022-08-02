@@ -60,10 +60,10 @@ for dm in dml:
 
 
     config.JobType.allowUndistributedCMSSW = True
-    config.neutral_p_indv.outLFNDirBase='/store/user/{}/{}/'.format(getUsernameFromCRIC(), config.General.workArea)
-    config.neutral_p_indv.publication = False
-    config.neutral_p_indv.allowNonValidInputneutral_p_indvset = True
-    config.neutral_p_indv.ignoreLocality = True
+    config.outLFNDirBase='/store/user/{}/{}/'.format(getUsernameFromCRIC(), config.General.workArea)
+    config.publication = False
+    config.allowNonValidInputneutral_p_indvset = True
+    config.ignoreLocality = True
     
     config.Site.whitelist   = ['T2_*','T1_*','T3_*']
     config.Site.storageSite = 'T2_UK_London_IC'
@@ -107,24 +107,23 @@ for dm in dml:
             tasks.append(('VBFHToTauTau_M125', '/VBFHToTauTau_M125_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18RECO-106X_upgrade2018_realistic_v11_L1v1-v2/AODSIM'))
             tasks.append(('WminusHToTauTau_M125', '/WminusHToTauTau_M125_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18RECO-106X_upgrade2018_realistic_v11_L1v1-v2/AODSIM'))
             tasks.append(('WplusHToTauTau_M125', '/WplusHToTauTau_M125_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18RECO-106X_upgrade2018_realistic_v11_L1v1-v2/AODSIM'))
-            tasks.append(('ttHToTauTau_M125', '/ttHToTauTau_M125_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18RECO-106X_upgrade2018_realistic_v11_L1v1-v3/AODSIM'))
     
         for task in tasks:
             print(task[0])
             config.General.requestName = task[0]
-            config.neutral_p_indv.inputneutral_p_indvset = task[1]
+            config.inputneutral_p_indvset = task[1]
 
             if args.recovery:
               os.system("crab kill {}_{}_106X_{}/crab_{}".format(args.output_folder,dm,yr,task[0]))
               os.system("crab report {}_{}_106X_{}/crab_{}".format(args.output_folder,dm,yr,task[0]))
-              config.neutral_p_indv.lumiMask = "{}_{}_106X_{}/crab_{}/results/notFinishedLumis.json".format(args.output_folder,dm,yr,task[0])    
+              config.lumiMask = "{}_{}_106X_{}/crab_{}/results/notFinishedLumis.json".format(args.output_folder,dm,yr,task[0])    
             config.JobType.pyCfgParams = cfgParams
     
-            config.neutral_p_indv.userInputFiles = None
-            config.neutral_p_indv.splitting = 'EventAwareLumiBased'
-            config.neutral_p_indv.unitsPerJob = 50000
+            config.userInputFiles = None
+            config.splitting = 'EventAwareLumiBased'
+            config.unitsPerJob = 50000
 
-            if args.recovery: config.neutral_p_indv.unitsPerJob = 10000
+            if args.recovery: config.unitsPerJob = 10000
 
             print(config)
     
