@@ -22,8 +22,8 @@ vector<float> vTaujet_jet_neutral_pT_;
 vector<float> vTaujet_jet_neutral_m0_;
 vector<float> vTaujet_jet_neutral_eta_;
 vector<float> vTaujet_jet_neutral_phi_;
-vector<vector<float>> vTaujet_jet_charged_indv_pt_;
-vector<vector<float>> vTaujet_jet_neutral_indv_pt_;
+vector<vector<float>> vTaujet_jet_charged_indv_p_;
+vector<vector<float>> vTaujet_jet_neutral_indv_p_;
 vector<vector<float>> vTaujet_jet_charged_indv_eta_;
 vector<vector<float>> vTaujet_jet_neutral_indv_eta_;
 vector<vector<float>> vTaujet_jet_charged_indv_phi_;
@@ -43,6 +43,10 @@ vector<float> vTaujet_jet_neutralsum_ECAL_;
 // sum all pf
 vector<float> vTaujet_jet_centre_ieta_;
 vector<float> vTaujet_jet_centre_iphi_;
+vector<float> vTaujet_jet_centre1_ieta_;
+vector<float> vTaujet_jet_centre1_iphi_;
+vector<float> vTaujet_jet_centre2_ieta_;
+vector<float> vTaujet_jet_centre2_iphi_;
 
 // Initialize branches _____________________________________________________//
 void RecHitAnalyzer::branchesEvtSel_jet_taujet( TTree* tree, edm::Service<TFileService> &fs ) {
@@ -64,8 +68,8 @@ void RecHitAnalyzer::branchesEvtSel_jet_taujet( TTree* tree, edm::Service<TFileS
   tree->Branch("neutralM", &vTaujet_jet_neutral_m0_);
   tree->Branch("neutralEta", &vTaujet_jet_neutral_eta_);
   tree->Branch("neutralPhi", &vTaujet_jet_neutral_phi_);
-  tree->Branch("jet_charged_indv_pt", &vTaujet_jet_charged_indv_pt_);
-  tree->Branch("jet_neutral_indv_pt", &vTaujet_jet_neutral_indv_pt_);
+  tree->Branch("jet_charged_indv_p", &vTaujet_jet_charged_indv_p_);
+  tree->Branch("jet_neutral_indv_p", &vTaujet_jet_neutral_indv_p_);
   tree->Branch("jet_charged_indv_ieta", &vTaujet_jet_charged_indv_eta_);
   tree->Branch("jet_neutral_indv_ieta", &vTaujet_jet_neutral_indv_eta_);
   tree->Branch("jet_charged_indv_iphi", &vTaujet_jet_charged_indv_phi_);
@@ -85,6 +89,10 @@ void RecHitAnalyzer::branchesEvtSel_jet_taujet( TTree* tree, edm::Service<TFileS
 
   tree->Branch("jet_centre_ieta", &vTaujet_jet_centre_ieta_);
   tree->Branch("jet_centre_iphi", &vTaujet_jet_centre_iphi_);
+  tree->Branch("jet_centre1_ieta", &vTaujet_jet_centre1_ieta_);
+  tree->Branch("jet_centre1_iphi", &vTaujet_jet_centre1_iphi_);
+  tree->Branch("jet_centre2_ieta", &vTaujet_jet_centre2_ieta_);
+  tree->Branch("jet_centre2_iphi", &vTaujet_jet_centre2_iphi_);
 
 } // branchesEvtSel_jet_taujet()
 
@@ -106,8 +114,8 @@ bool RecHitAnalyzer::runEvtSel_jet_taujet( const edm::Event& iEvent, const edm::
   vTaujet_jet_neutral_m0_.clear();
   vTaujet_jet_neutral_eta_.clear();
   vTaujet_jet_neutral_phi_.clear();
-  vTaujet_jet_charged_indv_pt_.clear();
-  vTaujet_jet_neutral_indv_pt_.clear();
+  vTaujet_jet_charged_indv_p_.clear();
+  vTaujet_jet_neutral_indv_p_.clear();
   vTaujet_jet_charged_indv_eta_.clear();
   vTaujet_jet_neutral_indv_eta_.clear();
   vTaujet_jet_charged_indv_phi_.clear();
@@ -125,6 +133,10 @@ bool RecHitAnalyzer::runEvtSel_jet_taujet( const edm::Event& iEvent, const edm::
   vTaujet_jet_neutralsum_ECAL_.clear();
   vTaujet_jet_centre_ieta_.clear();
   vTaujet_jet_centre_iphi_.clear();
+  vTaujet_jet_centre1_ieta_.clear();
+  vTaujet_jet_centre1_iphi_.clear();
+  vTaujet_jet_centre2_ieta_.clear();
+  vTaujet_jet_centre2_iphi_.clear();
 
   int nJet = 0;
   // Loop over jets
@@ -222,10 +234,10 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     vTaujet_jet_eta_.push_back( thisJet->eta() );
     vTaujet_jet_phi_.push_back( thisJet->phi() );
 
-    std::cout<< "PFjet core info stored" << std::endl;
+    // std::cout<< "PFjet core info stored" << std::endl;
 
     std::vector<reco::PFCandidatePtr> pfCands = thisJet->getPFConstituents();
-    std::cout<< "Obtained vector of PF candidates" << std::endl;
+    // std::cout<< "Obtained vector of PF candidates" << std::endl;
 
     math::XYZTLorentzVector neutral_PF;
 
@@ -235,19 +247,25 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
 
     float neutral_ECAL = 0; // store ECAL energy deposits
 
-    std::cout << "New Jet" << std::endl;
+    // std::cout << "New Jet" << std::endl;
 
     double total_energy = 0; // total energy of event
     double eta_sum = 0; //sum of E_i*eta_i for all i
     double phi_sum = 0;
+    double total_energy1 = 0; // total energy of event
+    double eta_sum1 = 0; //sum of E_i*eta_i for all i
+    double phi_sum1 = 0;
+    double total_energy2 = 0; // total energy of event
+    double eta_sum2 = 0; //sum of E_i*eta_i for all i
+    double phi_sum2 = 0;
+
 
     for (const auto &pfC : pfCands){
       
       
       // Loop over all PF candidates and make energy weighted average position
-      total_energy += pfC->energy();
       
-      // propagate all particles (neutral should be unaffected)
+      // propagate all particles 
       double magneticField = (magfield.product() ? magfield.product()->inTesla(GlobalPoint(0., 0., 0.)).z() : 0.0);
       math::XYZTLorentzVector  prop_p4(pfC->p4().px(),pfC->p4().py(),pfC->p4().pz(),sqrt(pow(pfC->p(),2)+pfC->mass()*pfC->mass())); //setup 4-vector 
       BaseParticlePropagator propagator = BaseParticlePropagator(
@@ -258,12 +276,27 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
       
       eta_sum += pfC_position.eta()*pfC->energy();
       phi_sum += pfC_position.phi()*pfC->energy();
+      total_energy += pfC->energy();
 
-      if (pfC->charge()==0){
-        // std::cout << pfC->charge() << std::endl;
-        std::cout<< "Before eta: " << pfC->p4().eta()  << " After eta: " << pfC_position.eta() << " Before phi: " << pfC->p4().phi() << " After phi: " << pfC_position.phi() << std::endl;
+      if (pfC->particleId() == 1 || pfC->particleId() ==4){
+        // Store gamma and hPM for position
+        eta_sum1 += pfC_position.eta()*pfC->energy();
+        phi_sum1 += pfC_position.phi()*pfC->energy();
+        total_energy1 += pfC->energy();
+      }
+      if (pfC->particleId() == 4 || pfC->particleId()==2){
+        // Store gamma and e for position
+        eta_sum2 += pfC_position.eta()*pfC->energy();
+        phi_sum2 += pfC_position.phi()*pfC->energy();
+        total_energy2 += pfC->energy();
       }
 
+      // if (pfC->charge()==0){
+      //   // std::cout << pfC->charge() << std::endl;
+      //   std::cout<< "Before eta: " << pfC->p4().eta()  << " After eta: " << pfC_position.eta() << " Before phi: " << pfC->p4().phi() << " After phi: " << pfC_position.phi() << std::endl;
+      // }
+
+      // std::cout<< "Alive 1" << std::endl;
 
       if (pfC->particleId()==4){
         
@@ -275,7 +308,9 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
       } else if (pfC->particleId()==1){
         
         if (pfC->p4().pt() > p4_leading.pt()){
-          p4_leading = pfC->p4();
+          // store leading hadron propagated
+          math::XYZTLorentzVector propagated_p4(pfC->p4().pt(), pfC_position.eta(), pfC_position.phi(), pfC->p4().mass());
+          p4_leading = propagated_p4;
           leading_pfC = pfC;
         }
         // std::cout<< "Charged hadron with energy: " << pfC->p4().energy() << std::endl;
@@ -295,24 +330,29 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     // std::cout << "Leading charged hadron pT: " << p4_leading.pt() << " eta: " << p4_leading.eta() << " phi: " << p4_leading.phi() << std::endl;
     // std::cout << "Momentum " << p4_leading.px() << "   " << p4_leading.py() << "   " << p4_leading.pz() << std::endl;
 
-
-    // propagate leading particle
+    // std::cout<< "Alive 2" << std::endl;
+    // // propagate leading particle
     double magneticField = (magfield.product() ? magfield.product()->inTesla(GlobalPoint(0., 0., 0.)).z() : 0.0);
-    
-    math::XYZTLorentzVector  prop_p4(p4_leading.px(),p4_leading.py(),p4_leading.pz(),sqrt(pow(leading_pfC->p(),2)+0.14*0.14)); //setup 4-vector assuming mass is mass of charged pion
-    BaseParticlePropagator propagator = BaseParticlePropagator(
-        RawParticle(prop_p4, math::XYZTLorentzVector(leading_pfC->vx(), leading_pfC->vy(), leading_pfC->vz(), 0.),
-                    leading_pfC->charge()),0.,0.,magneticField);
-    propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
-    auto position = propagator.particle().vertex().Vect();
+    // // std::cout<< "Alive 2aa" << std::endl;
+    // math::XYZTLorentzVector  prop_p4_lead(p4_leading.px(),p4_leading.py(),p4_leading.pz(),sqrt(pow(leading_pfC->p(),2)+0.14*0.14)); //setup 4-vector assuming mass is mass of charged pion
+    // // std::cout<< "Alive 2a" << std::endl;
+    // BaseParticlePropagator propagator = BaseParticlePropagator(
+    //     RawParticle(prop_p4_lead, math::XYZTLorentzVector(leading_pfC->vx(), leading_pfC->vy(), leading_pfC->vz(), 0.),
+    //                 leading_pfC->charge()),0.,0.,magneticField);
+    // // std::cout<< "Alive 2b" << std::endl;       
+    // propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
+    // auto position = propagator.particle().vertex().Vect();
+    // // std::cout<< "Alive 2c" << std::endl;
     // std::cout<< "Propagated eta: " << position.eta() << " phi: " << position.phi() << std::endl;
 
     // find indices for leading prong
-    DetId id_leading( spr::findDetIdECAL( caloGeom, position.eta(), position.phi(), false ) );
+    DetId id_leading( spr::findDetIdECAL( caloGeom, p4_leading.eta(), p4_leading.phi(), false ) );
     EBDetId ebId( id_leading );
     int leading_iphi_ = ebId.iphi() - 1;
     int leading_ieta_ = ebId.ieta() > 0 ? ebId.ieta()-1 : ebId.ieta();
     // std::cout<< "Indices " <<  leading_iphi_ << " " << leading_ieta_ << std::endl;
+    // std::cout<< "Alive 2d" << std::endl;
+    
 
     //find indices for neutral component of jet
     DetId id_neutral( spr::findDetIdECAL( caloGeom, neutral_PF.eta(), neutral_PF.phi(), false ) );
@@ -320,6 +360,7 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     int neutral_iphi_ = ebId_neutral.iphi() - 1;
     int neutral_ieta_ = ebId_neutral.ieta() > 0 ? ebId_neutral.ieta()-1 : ebId_neutral.ieta();
     // std::cout<< "Indices " <<  neutral_iphi_ << " " << neutral_ieta_ << std::endl;
+    // std::cout<< "Alive 2e" << std::endl;
 
     // find indices for total jet
     double eta_avg = eta_sum/total_energy;
@@ -328,8 +369,32 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     EBDetId ebId_jet( id_jet );
     int jet_sum_iphi_ = ebId_jet.iphi() - 1;
     int jet_sum_ieta_ = ebId_jet.ieta() > 0 ? ebId_jet.ieta()-1 : ebId_jet.ieta();
+    // std::cout<< "Alive 2f" << std::endl;
 
-    std::cout << "Neutral sum energy: " << neutral_ECAL << "Leading prong energy: " << p4_leading.energy() << std::endl;
+    // find indices for total jet 1
+    double eta_avg1 = eta_sum1/total_energy1;
+    double phi_avg1 = phi_sum1/total_energy1;
+    DetId id_jet1( spr::findDetIdECAL( caloGeom, eta_avg1, phi_avg1, false ) );
+    EBDetId ebId_jet1( id_jet1 );
+    int jet_sum_iphi1_ = ebId_jet1.iphi() - 1;
+    int jet_sum_ieta1_ = ebId_jet1.ieta() > 0 ? ebId_jet1.ieta()-1 : ebId_jet1.ieta();
+    // std::cout<< "Alive 2g" << std::endl;
+
+
+    // find indices for total jet 2
+    double eta_avg2 = eta_sum2/total_energy2;
+    double phi_avg2 = phi_sum2/total_energy2;
+    DetId id_jet2( spr::findDetIdECAL( caloGeom, eta_avg2, phi_avg2, false ) );
+    EBDetId ebId_jet2( id_jet2 );
+    int jet_sum_iphi2_ = ebId_jet2.iphi() - 1;
+    int jet_sum_ieta2_ = ebId_jet2.ieta() > 0 ? ebId_jet2.ieta()-1 : ebId_jet2.ieta();
+    // std::cout<< "Alive 2h" << std::endl;
+    
+  
+
+    // std::cout<< "Alive 3" << std::endl;
+
+    // std::cout << "Neutral sum energy: " << neutral_ECAL << "Leading prong energy: " << p4_leading.energy() << std::endl;
     std::pair<int, reco::GenTau*> match = getTruthLabelForTauJets(thisJet, genParticles, magneticField, 0.4, false);
     int truthLabel = match.first;
     vTaujet_jet_truthLabel_      .push_back(truthLabel);
@@ -339,8 +404,8 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     float neutral_M=0.;
     float neutral_eta=0.;
     float neutral_phi=0.;
-    vector<float> charge_pt_indv;
-    vector<float> neutral_pt_indv;
+    vector<float> charge_p_indv;
+    vector<float> neutral_p_indv;
     vector<float> charge_eta_indv;
     vector<float> neutral_eta_indv;
     vector<float> charge_phi_indv;
@@ -366,7 +431,8 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
           int charged_iphi_ = ebId.iphi() - 1;
           int charged_ieta_ = ebId.ieta() > 0 ? ebId.ieta()-1 : ebId.ieta();
           
-          charge_pt_indv.push_back(charged.pt());
+          charge_p_indv.push_back(charged.energy());
+          std::cout<< "Charged particle energy: " << charged.energy() << "pT: " << charged.pt() << std::endl;
           charge_eta_indv.push_back(charged_ieta_);
           charge_phi_indv.push_back(charged_iphi_);
         }
@@ -380,20 +446,20 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
             int neutral_iphi_ = ebId_neutral.iphi() - 1;
             int neutral_ieta_ = ebId_neutral.ieta() > 0 ? ebId_neutral.ieta()-1 : ebId_neutral.ieta();
 
-            neutral_pt_indv.push_back(neutral.pt());
+            neutral_p_indv.push_back(neutral.energy());
             neutral_eta_indv.push_back(neutral_ieta_);
             neutral_phi_indv.push_back(neutral_iphi_);
           }
       } else{
-        neutral_pt_indv.push_back(-1);
+        neutral_p_indv.push_back(-1);
         neutral_eta_indv.push_back(-100); 
         neutral_phi_indv.push_back(-100);
         
       }
       
     } else{
-      charge_pt_indv.push_back(-1);
-      neutral_pt_indv.push_back(-1);
+      charge_p_indv.push_back(-1);
+      neutral_p_indv.push_back(-1);
       charge_eta_indv.push_back(-100);
       neutral_eta_indv.push_back(-100);
       charge_phi_indv.push_back(-100);
@@ -410,15 +476,15 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     vTaujet_jet_neutral_phi_.push_back(neutral_phi);
     // push back vector
 
-    vTaujet_jet_charged_indv_pt_.push_back(charge_pt_indv);
-    vTaujet_jet_neutral_indv_pt_.push_back(neutral_pt_indv);
+    vTaujet_jet_charged_indv_p_.push_back(charge_p_indv);
+    vTaujet_jet_neutral_indv_p_.push_back(neutral_p_indv);
     vTaujet_jet_charged_indv_eta_.push_back(charge_eta_indv);
     vTaujet_jet_neutral_indv_eta_.push_back(neutral_eta_indv);
     vTaujet_jet_charged_indv_phi_.push_back(charge_phi_indv);
     vTaujet_jet_neutral_indv_phi_.push_back(neutral_phi_indv);
 
-    vTaujet_jet_leading_eta_.push_back(position.eta());
-    vTaujet_jet_leading_phi_.push_back(position.phi());
+    vTaujet_jet_leading_eta_.push_back(p4_leading.eta());
+    vTaujet_jet_leading_phi_.push_back(p4_leading.phi());
     vTaujet_jet_leading_ieta_.push_back(leading_ieta_);
     vTaujet_jet_leading_iphi_.push_back(leading_iphi_);
     vTaujet_jet_leading_energy_.push_back(p4_leading.energy());
@@ -432,6 +498,11 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
 
     vTaujet_jet_centre_ieta_.push_back(jet_sum_ieta_);
     vTaujet_jet_centre_iphi_.push_back(jet_sum_iphi_);
+    vTaujet_jet_centre1_ieta_.push_back(jet_sum_ieta1_);
+    vTaujet_jet_centre1_iphi_.push_back(jet_sum_iphi1_);
+    vTaujet_jet_centre2_ieta_.push_back(jet_sum_ieta2_);
+    vTaujet_jet_centre2_iphi_.push_back(jet_sum_iphi2_);
+    
     
   }//vJetIdxs
 

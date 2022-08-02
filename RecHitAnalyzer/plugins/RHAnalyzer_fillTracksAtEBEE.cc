@@ -39,6 +39,10 @@ std::vector<float> vTracksz0sig_PV_EB_;
 std::vector<float> vTracksPt_nPV_EB_;
 std::vector<float> vTracksQPt_nPV_EB_;
 
+// HCAL info:
+std::vector<float> vPF_HCAL_EB_;
+std::vector<float> vPF_HCAL_EB_raw_;
+
 // Initialize branches ____________________________________________________________//
 void RecHitAnalyzer::branchesTracksAtEBEE ( TTree* tree, edm::Service<TFileService> &fs ) {
 
@@ -57,6 +61,9 @@ void RecHitAnalyzer::branchesTracksAtEBEE ( TTree* tree, edm::Service<TFileServi
 
   tree->Branch("TracksPt_nPV_EB",     &vTracksPt_nPV_EB_);
   tree->Branch("TracksQPt_nPV_EB",    &vTracksQPt_nPV_EB_);
+
+  tree->Branch("PF_HCAL_EB",     &vPF_HCAL_EB_);
+  tree->Branch("PF_HCAL_EB_raw", &vPF_HCAL_EB_raw_);
 
   // Histograms for monitoring
   hTracks_EB = fs->make<TH2F>("Tracks_EB", "N(i#phi,i#eta);i#phi;i#eta",
@@ -134,6 +141,10 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
   vTracksPt_nPV_EB_.assign( EBDetId::kSizeForDenseIndexing, 0. );
   vTracksQPt_nPV_EB_.assign( EBDetId::kSizeForDenseIndexing, 0. );
 
+  // HCAL on same grid resolution
+  vPF_HCAL_EB_.assign( EBDetId::kSizeForDenseIndexing, 0. );
+  vPF_HCAL_EB_raw_.assign( EBDetId::kSizeForDenseIndexing, 0. );
+
   for ( int iz(0); iz < nEE; iz++ ) {
     vTracks_EE_[iz].assign( EE_NC_PER_ZSIDE, 0. );
     vTracksPt_EE_[iz].assign( EE_NC_PER_ZSIDE, 0. );
@@ -177,7 +188,7 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
 
   for(int thisJetIdx : vJetIdxs){
     reco::PFJetRef thisJet( jets, thisJetIdx );
-    std::cout << "Filling track image for PF jet" << std::endl;
+    // std::cout << "Filling track image for PF jet" << std::endl;
 
     std::vector<reco::PFCandidatePtr> pfCands = thisJet->getPFConstituents();
 
@@ -235,6 +246,11 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
         vTracksPt_EB_[idx_] += pt;
         vTracksE_EB_[idx_] += energy;
         vTracksQPt_EB_[idx_] += qpt;
+
+        // store HCAL energies
+        vPF_HCAL_EB_[idx_] += pfC->hcalEnergy();
+        vPF_HCAL_EB_raw_[idx_] += pfC->rawHcalEnergy();
+
 
         if(fabs(z0) < z0PVCut_){
     vTracksPt_PV_EB_[idx_] += pt;

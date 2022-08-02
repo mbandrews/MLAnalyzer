@@ -390,7 +390,7 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
                       daughter->charge()),0.,0.,magneticField);
           propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
           auto position = propagator.particle().vertex().Vect();
-          math::XYZTLorentzVector propagated_p4(daughter->p4().pt(), position.eta(), position.phi(), daughter->p4().mass());
+          math::XYZTLorentzVector propagated_p4(daughter->p4().pt(), position.eta(), position.phi(), daughter->p4().energy());
           // std::cout << "Gen-Info pi+- energy: " <<  daughter->p4().energy() << "Mother ID " << daughter->mother()->pdgId()<< std::endl;
           charge_vec+=propagated_p4; // LR store each here
           charge_vec_all.push_back(propagated_p4);
