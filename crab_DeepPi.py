@@ -12,7 +12,7 @@ parser.add_argument('--recovery', help= 'Do recovery jobs, make sure you run cra
 args = parser.parse_args()
 
 dml = []
-if args.data: dml.append("neutral_p_indv")
+if args.data: dml.append("Data")
 if args.mc: dml.append("MC")
 
 if args.year == "all": yl = ["2018"]
@@ -26,7 +26,7 @@ gt = {
       "MC"  :{
               "2018":"106X_upgrade2018_realistic_v11_L1v1"
               },
-      "neutral_p_indv":{
+      "Data":{
               "2018":"106X_upgrade2018_realistic_v16_L1v1"
               }
       }
@@ -53,16 +53,16 @@ for dm in dml:
     config.JobType.outputFiles = ['EventTree.root']
     config.JobType.maxMemoryMB = 4000
     cfgParams = ['globalTag={}'.format(gt[dm][yr])]
-    if dm == "neutral_p_indv": 
-      cfgParams.append('isneutral_p_indv=1')
+    if dm == "Data": 
+      cfgParams.append('isData=1')
     else: 
-      cfgParams.append('isneutral_p_indv=0')
+      cfgParams.append('isData=0')
 
 
     config.JobType.allowUndistributedCMSSW = True
     config.Data.outLFNDirBase='/store/user/{}/{}/'.format(getUsernameFromCRIC(), config.General.workArea)
     config.Data.publication = False
-    config.Data.allowNonValidInputneutral_p_indvset = True
+    config.Data.allowNonValidInputDataset = True
     config.Data.ignoreLocality = True
     
     config.Site.whitelist   = ['T2_*','T1_*','T3_*']
@@ -111,7 +111,7 @@ for dm in dml:
         for task in tasks:
             print(task[0])
             config.General.requestName = task[0]
-            config.Data.inputneutral_p_indvset = task[1]
+            config.Data.inputDataset = task[1]
 
             if args.recovery:
               os.system("crab kill {}_{}_106X_{}/crab_{}".format(args.output_folder,dm,yr,task[0]))
