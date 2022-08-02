@@ -432,7 +432,7 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
           int charged_ieta_ = ebId.ieta() > 0 ? ebId.ieta()-1 : ebId.ieta();
           
           charge_p_indv.push_back(charged.energy());
-          std::cout<< "Charged particle energy: " << charged.energy() << "pT: " << charged.pt() << std::endl;
+          // std::cout<< "Charged particle energy: " << charged.energy() << "pT: " << charged.pt() << std::endl;
           charge_eta_indv.push_back(charged_ieta_);
           charge_phi_indv.push_back(charged_iphi_);
         }
