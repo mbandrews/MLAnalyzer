@@ -60,10 +60,10 @@ for dm in dml:
 
 
     config.JobType.allowUndistributedCMSSW = True
-    config.outLFNDirBase='/store/user/{}/{}/'.format(getUsernameFromCRIC(), config.General.workArea)
-    config.publication = False
-    config.allowNonValidInputneutral_p_indvset = True
-    config.ignoreLocality = True
+    config.Data.outLFNDirBase='/store/user/{}/{}/'.format(getUsernameFromCRIC(), config.General.workArea)
+    config.Data.publication = False
+    config.Data.allowNonValidInputneutral_p_indvset = True
+    config.Data.ignoreLocality = True
     
     config.Site.whitelist   = ['T2_*','T1_*','T3_*']
     config.Site.storageSite = 'T2_UK_London_IC'
@@ -111,19 +111,19 @@ for dm in dml:
         for task in tasks:
             print(task[0])
             config.General.requestName = task[0]
-            config.inputneutral_p_indvset = task[1]
+            config.Data.inputneutral_p_indvset = task[1]
 
             if args.recovery:
               os.system("crab kill {}_{}_106X_{}/crab_{}".format(args.output_folder,dm,yr,task[0]))
               os.system("crab report {}_{}_106X_{}/crab_{}".format(args.output_folder,dm,yr,task[0]))
-              config.lumiMask = "{}_{}_106X_{}/crab_{}/results/notFinishedLumis.json".format(args.output_folder,dm,yr,task[0])    
+              config.Data.lumiMask = "{}_{}_106X_{}/crab_{}/results/notFinishedLumis.json".format(args.output_folder,dm,yr,task[0])    
             config.JobType.pyCfgParams = cfgParams
     
-            config.userInputFiles = None
-            config.splitting = 'EventAwareLumiBased'
-            config.unitsPerJob = 50000
+            config.Data.userInputFiles = None
+            config.Data.splitting = 'EventAwareLumiBased'
+            config.Data.unitsPerJob = 50000
 
-            if args.recovery: config.unitsPerJob = 10000
+            if args.recovery: config.Data.unitsPerJob = 10000
 
             print(config)
     
