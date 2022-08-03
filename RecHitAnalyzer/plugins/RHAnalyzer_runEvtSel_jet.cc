@@ -18,8 +18,8 @@ vector<float> vJetSeed_ieta_;
 vector<int>   vFailedJetIdx_;
 
 
-//const std::string jetSelection = "dijet_gg_qq"; // TODO: put switch at cfg level
-//const std::string jetSelection = "dijet";
+// const std::string jetSelection = "dijet_gg_qq"; // TODO: put switch at cfg level
+// const std::string jetSelection = "dijet";
 const std::string jetSelection = "taujet";
 
 

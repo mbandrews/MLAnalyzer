@@ -30,6 +30,8 @@ RecHitAnalyzer::RecHitAnalyzer(const edm::ParameterSet& iConfig)
   jetCollectionT_         = consumes<reco::PFJetCollection>(iConfig.getParameter<edm::InputTag>("ak4PFJetCollection"));
   genJetCollectionT_      = consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("genJetCollection"));
   trackCollectionT_       = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("trackCollection"));
+
+
   pfCollectionT_          = consumes<PFCollection>(iConfig.getParameter<edm::InputTag>("pfCollection"));
   vertexCollectionT_       = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexCollection"));
 
@@ -235,9 +237,6 @@ RecHitAnalyzer::getTrackCand(edm::Handle<reco::TrackCollection> trackCands, floa
   return minDRCand;  
 }
 
-
-
-
 int RecHitAnalyzer::getTruthLabel(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch , bool debug ){
   if ( debug ) {
     std::cout << " Mathcing reco jetPt:" << recJet->pt() << " jetEta:" << recJet->eta() << " jetPhi:" << recJet->phi() << std::endl;
@@ -284,7 +283,7 @@ int RecHitAnalyzer::getTruthLabel(const reco::PFJetRef& recJet, edm::Handle<reco
   return -99;
 }
 
-std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection> genParticles, bool include_leptonic, bool use_prompt) {
+std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection> genParticles, double magneticField, bool include_leptonic, bool use_prompt) {
   // Warning: returned tau type works for taus decayed by Pythia8 but might not work for other generators e.g tauola!
   std::vector<reco::GenTau *> taus;
   for (reco::GenParticleCollection::const_iterator iGen = genParticles->begin();
@@ -305,6 +304,9 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
       math::XYZTLorentzVector charge_vec;
       math::XYZTLorentzVector neutral_vec;
       math::XYZTLorentzVector lead_pi0_vec;
+      // Add vector of charged
+      std::vector<math::XYZTLorentzVector> charge_vec_all;
+      std::vector<math::XYZTLorentzVector> neutral_vec_all;
       for (const reco::GenParticleRef& daughter : iGen->daughterRefVector()) {
         if (abs(daughter->pdgId()) == 15) has_tau_daughter = true;
         if (abs(daughter->pdgId()) == 11 || abs(daughter->pdgId()) == 13) has_lepton_daughter = true;
@@ -316,13 +318,27 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
         unsigned pdgId = abs(daughter->pdgId());
         if(pdgId == 111) {
           count_pi0++;
-          neutral_vec+=daughter->p4(); // LR store each here?
+          neutral_vec+=daughter->p4(); 
+          // std::cout << "Gen-Info pi0 energy: " <<  daughter->p4().energy() << "Mother ID " << daughter->mother()->pdgId() << std::endl;
+          neutral_vec_all.push_back(daughter->p4());
           if(daughter->pt() > lead_pi0_vec.pt()) lead_pi0_vec = daughter->p4();
         } 
         if(pdgId == 211) count_pi++;
         if(pdgId == 213) count_rho++;
         if(pdgId == 321) count_k++;
-        if(daughter->charge()!=0) charge_vec+=daughter->p4(); // LR store each here?
+        if(daughter->charge()!=0) {
+          // propagate charged particles to ECAL (B field Loaded in definition)
+          math::XYZTLorentzVector prop_p4(daughter->p4().px(),daughter->p4().py(),daughter->p4().pz(),sqrt(pow(daughter->p(),2)+0.14*0.14)); 
+          BaseParticlePropagator propagator = BaseParticlePropagator(
+          RawParticle(prop_p4, math::XYZTLorentzVector(daughter->vx(), daughter->vy(), daughter->vz(), 0.),
+                      daughter->charge()),0.,0.,magneticField);
+          propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
+          auto position = propagator.particle().vertex().Vect();
+          math::XYZTLorentzVector propagated_p4(daughter->p4().pt(), position.eta(), position.phi(), daughter->p4().energy());
+          // std::cout << "Gen-Info pi+- energy: " <<  daughter->p4().energy() << "Mother ID " << daughter->mother()->pdgId()<< std::endl;
+          charge_vec+=propagated_p4; 
+          charge_vec_all.push_back(propagated_p4);
+        }
         if(pdgId!=12&&pdgId!=14&&pdgId!=16) {
           count_tot++;
         } else {
@@ -341,11 +357,12 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
       if(count_tot==4 && count_pi==3 && count_pi0==1) tauFlag=11;
       reco::GenTau *tau = new reco::GenTau(iGen->charge(), iGen->p4(), vtx, iGen->pdgId(), iGen->status(), true);   
       tau->set_decay_mode(tauFlag);
-      // add some vars here?
       tau->set_charge_p4(charge_vec); 
       tau->set_neutral_p4(neutral_vec);
       tau->set_lead_pi0_p4(lead_pi0_vec); 
       tau->set_nu_p4(nuvec);
+      tau->set_charge_p4_indv(charge_vec_all);
+      tau->set_neutral_p4_indv(neutral_vec_all);
       taus.push_back(tau);
     }
   }
@@ -353,11 +370,11 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
 }
 
 
-std::pair<int, reco::GenTau*> RecHitAnalyzer::getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch , bool debug ){
+std::pair<int, reco::GenTau*> RecHitAnalyzer::getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, double magneticField, float dRMatch , bool debug ){
   if ( debug ) {
-    std::cout << " Mathcing reco jetPt:" << recJet->pt() << " jetEta:" << recJet->eta() << " jetPhi:" << recJet->phi() << std::endl;
+    std::cout << " Matching reco jetPt:" << recJet->pt() << " jetEta:" << recJet->eta() << " jetPhi:" << recJet->phi() << std::endl;
   }
-  std::vector<reco::GenTau *> gen_taus = BuildTauJets(genParticles, false,true);
+  std::vector<reco::GenTau *> gen_taus = BuildTauJets(genParticles, false,true, magneticField);
   std::vector<const reco::GenParticle *> gen_leptons;
   for (reco::GenParticleCollection::const_iterator iGen = genParticles->begin();
        iGen != genParticles->end();
