@@ -193,6 +193,32 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
     propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
     auto position = propagator.particle().vertex().Vect();
 
+////////
+//    std::cout << "!!!!!!!" << std::endl; 
+//    track_p4 = math::XYZTLorentzVector(1.0,0.,0.,sqrt(pow(1.,2)+0.14*0.14)); //setup 4-vector assuming mass is mass of charged pion
+//    propagator = BaseParticlePropagator(
+//        RawParticle(track_p4,
+//                    math::XYZTLorentzVector(iTk->vx(), iTk->vy(), iTk->vz(), 0.),
+//                    1.),
+//        0.,
+//        0.,
+//        magneticField);
+//    propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
+//    position = propagator.particle().vertex().Vect();
+//    std::cout << position.eta() << "  " << position.phi() << std::endl;
+//    propagator = BaseParticlePropagator(
+//        RawParticle(track_p4,
+//                    math::XYZTLorentzVector(iTk->vx(), iTk->vy(), iTk->vz(), 0.),
+//                    0.),
+//        0.,
+//        0.,
+//        magneticField);
+//    propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
+//    position = propagator.particle().vertex().Vect();
+//    std::cout << position.eta() << "  " << position.phi() << std::endl;
+////////
+
+
     if ( std::abs(position.eta()) > 3. ) continue;
 
     //DetId id( spr::findDetIdECAL( caloGeom, eta, phi, false ) ); //old version - not sure how this was working for charged particles 

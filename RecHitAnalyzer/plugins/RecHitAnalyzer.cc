@@ -358,12 +358,94 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
   return taus;
 }
 
+std::vector<reco::GenParticle*> Pi0Combinations(std::set<reco::GenParticleRef> pi0s){ 
+  for (auto x : pi0s) 
+}
 
-std::pair<int, reco::GenTau*> RecHitAnalyzer::getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch , bool debug ){
+//std::vector<reco::GenTau*> OneProngCombinations(std::vector<const reco::GenParticle*> pis, std::set<reco::GenParticleRef> pi0s){
+//  for (auto pi : pis) {
+//
+//  }
+
+}
+
+std::vector<reco::GenTau *> BuildTauLikeJets(edm::Handle<reco::GenJetCollection> genJets) {
+
+  std::vector<reco::GenTau *> taus;
+  for (reco::GenJetCollection::const_iterator iJet = genJets->begin();
+       iJet != genJets->end();
+       ++iJet) {
+
+    std::vector<const reco::GenParticle*> parts = iJet->getGenConstituents();
+    math::XYZTLorentzVector charge_vec;
+    math::XYZTLorentzVector neutral_vec;
+    math::XYZTLorentzVector lead_pi0_vec;
+    std::vector<const reco::GenParticle*> pis = {};
+
+    bool failSignalCone = false;
+    unsigned Ntotal=parts.size();
+    unsigned Npi=0;
+    unsigned Ngammas=0;
+    std::set<reco::GenParticleRef> mother_refs = {};
+    //std::set<int> mother_refs = {};
+    //double cone_size = std::max(std::min(0.1, 3./iJet->pt()),0.05); // define cone size like for HPS taus
+    //if(abs(iJet->charge())!=1) continue;    
+ 
+    for(auto x : parts) {
+      //if(std::fabs(ROOT::Math::VectorUtil::DeltaR(x->p4(),iJet->p4()))>cone_size) failSignalCone=true;
+      int pdgId = abs(x->pdgId());
+      if(pdgId == 22) {
+        Ngammas++;
+        auto mothers = x->motherRefVector();
+        for (auto m : mothers){
+          //if(abs(m->pdgId())==111) mother_refs.insert(m.key());
+          if(abs(m->pdgId())==111 && m->pt()>1.) mother_refs.insert(m);
+        }
+        
+        neutral_vec+=x->p4();
+        if(x->pt() > lead_pi0_vec.pt()) lead_pi0_vec = x->p4();
+      }
+      if(pdgId == 211) {
+        Npi++;
+        if(x->pt()>1.) pis.push_pack(x);
+      }
+    }
+    // try 1-prong combinations
+
+    for (auto x : pis) {
+      double dR_pi = std::fabs(ROOT::Math::VectorUtil::DeltaR(x->p4(),iJet->p4()));
+      if(dR_pi<0.1) continue;
+      for(auto y : mother_refs) { 
+        double dR_pi0 = std::fabs(ROOT::Math::VectorUtil::DeltaR(y->p4(),iJet->p4()));
+       }
+    } 
+   
+    //if(Ntotal==Npi+Npi0 && (Npi==1 || Npi==3) && !failSignalCone) {
+    if(Ntotal==Npi+Ngammas && (Npi==1 || Npi==3) /*&& !failSignalCone*/) {
+    //if(Npi==1) {
+      std::cout << "-------" << std::endl;
+      //for(auto x : parts) {
+      //  std::cout << x->pt() << " " << x->pdgId() << "  " << x->eta() << "  " << x->phi() << std::endl; 
+      //}
+      std::cout << mother_refs.size() << std::endl; 
+      for(auto x : mother_refs) {
+        double dR = std::fabs(ROOT::Math::VectorUtil::DeltaR(x->p4(),iJet->p4()));
+        std::cout << x.key() << "  " << x->pdgId() << "  " << x->pt() << "  " << dR << "  " << x->motherRefVector()[0]->pdgId() << std::endl;
+      }
+    }
+
+  }
+
+  return taus;
+}
+
+
+std::pair<int, reco::GenTau*> RecHitAnalyzer::getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, edm::Handle<reco::GenJetCollection> genJets, float dRMatch , bool debug ){
   if ( debug ) {
     std::cout << " Mathcing reco jetPt:" << recJet->pt() << " jetEta:" << recJet->eta() << " jetPhi:" << recJet->phi() << std::endl;
   }
   std::vector<reco::GenTau *> gen_taus = BuildTauJets(genParticles, false,true);
+  std::vector<reco::GenTau *> gen_taus_like_jets = BuildTauLikeJets(genJets);
   std::vector<const reco::GenParticle *> gen_leptons;
   for (reco::GenParticleCollection::const_iterator iGen = genParticles->begin();
        iGen != genParticles->end();

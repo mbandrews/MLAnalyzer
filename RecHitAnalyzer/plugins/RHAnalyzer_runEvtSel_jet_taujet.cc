@@ -110,6 +110,9 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
 
   edm::Handle<reco::GenParticleCollection> genParticles;
   iEvent.getByToken( genParticleCollectionT_, genParticles );
+  
+  edm::Handle<reco::GenJetCollection> genJets;
+  iEvent.getByToken( genJetCollectionT_, genJets );
 
   edm::Handle<edm::View<reco::Jet> > recoJetCollection;
   iEvent.getByToken(recoJetsT_, recoJetCollection);
@@ -154,7 +157,7 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     vTaujet_jet_eta_.push_back( thisJet->eta() );
     vTaujet_jet_phi_.push_back( thisJet->phi() );
 
-    std::pair<int, reco::GenTau*> match = getTruthLabelForTauJets(thisJet,genParticles,0.4, false);
+    std::pair<int, reco::GenTau*> match = getTruthLabelForTauJets(thisJet,genParticles,genJets,0.4, false);
     int truthLabel = match.first;
     vTaujet_jet_truthLabel_      .push_back(truthLabel);
 
