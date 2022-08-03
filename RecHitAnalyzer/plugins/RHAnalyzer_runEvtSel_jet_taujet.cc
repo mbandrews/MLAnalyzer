@@ -234,10 +234,7 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     vTaujet_jet_eta_.push_back( thisJet->eta() );
     vTaujet_jet_phi_.push_back( thisJet->phi() );
 
-    // std::cout<< "PFjet core info stored" << std::endl;
-
     std::vector<reco::PFCandidatePtr> pfCands = thisJet->getPFConstituents();
-    // std::cout<< "Obtained vector of PF candidates" << std::endl;
 
     math::XYZTLorentzVector neutral_PF;
 
@@ -246,8 +243,6 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
 
 
     float neutral_ECAL = 0; // store ECAL energy deposits
-
-    // std::cout << "New Jet" << std::endl;
 
     double total_energy = 0; // total energy of event
     double eta_sum = 0; //sum of E_i*eta_i for all i
@@ -291,20 +286,12 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
         total_energy2 += pfC->energy();
       }
 
-      // if (pfC->charge()==0){
-      //   // std::cout << pfC->charge() << std::endl;
-      //   std::cout<< "Before eta: " << pfC->p4().eta()  << " After eta: " << pfC_position.eta() << " Before phi: " << pfC->p4().phi() << " After phi: " << pfC_position.phi() << std::endl;
-      // }
-
-      // std::cout<< "Alive 1" << std::endl;
-
       if (pfC->particleId()==4){
         
         auto n_p4_vec = pfC->p4();
         neutral_PF += n_p4_vec;
         neutral_ECAL += pfC->ecalEnergy(); // going with corrected energy for now
-        // std::cout<< "DEBUG: Adding pT: " << n_p4_vec.pt() << std::endl;
-        // std::cout<< "Photon with: raw ECAL energy: " << pfC->rawEcalEnergy() << " Corrected ECAL energy: " << pfC->ecalEnergy() <<std::endl;
+
       } else if (pfC->particleId()==1){
         
         if (pfC->p4().pt() > p4_leading.pt()){
@@ -313,88 +300,50 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
           p4_leading = propagated_p4;
           leading_pfC = pfC;
         }
-        // std::cout<< "Charged hadron with energy: " << pfC->p4().energy() << std::endl;
-        // std::cout << "Vertex information of charged hadron" << std::endl;
-        // std::cout << "(PF) vx: " << pfC->vx() << " vy: " << pfC->vy() << " vz: " << pfC->vz() << std::endl;
-        // std::cout << "(PF) vx: " << pfC->vx() << " vy: " << pfC->vy() << " vz: " << pfC->vz() << std::endl;
-        // auto track = pfC->trackRef();
-        // std::cout << "(Track) vx: " << track->vx() << " vy: " << track->vy() << " vx: " << track->vz() << std::endl;
       } else {
-
-        // std::cout << "Candidate " << pfC->particleId() << " with energy "  << pfC->p4().energy() << std::endl;
 
         }
         } 
 
-    // std::cout << "Total neutral component of PF jet: pT: " << neutral_PF.pt() << " eta: " << neutral_PF.eta() << " phi: " << neutral_PF.phi() << std::endl;
-    // std::cout << "Leading charged hadron pT: " << p4_leading.pt() << " eta: " << p4_leading.eta() << " phi: " << p4_leading.phi() << std::endl;
-    // std::cout << "Momentum " << p4_leading.px() << "   " << p4_leading.py() << "   " << p4_leading.pz() << std::endl;
-
-    // std::cout<< "Alive 2" << std::endl;
-    // // propagate leading particle
+    
     double magneticField = (magfield.product() ? magfield.product()->inTesla(GlobalPoint(0., 0., 0.)).z() : 0.0);
-    // // std::cout<< "Alive 2aa" << std::endl;
-    // math::XYZTLorentzVector  prop_p4_lead(p4_leading.px(),p4_leading.py(),p4_leading.pz(),sqrt(pow(leading_pfC->p(),2)+0.14*0.14)); //setup 4-vector assuming mass is mass of charged pion
-    // // std::cout<< "Alive 2a" << std::endl;
-    // BaseParticlePropagator propagator = BaseParticlePropagator(
-    //     RawParticle(prop_p4_lead, math::XYZTLorentzVector(leading_pfC->vx(), leading_pfC->vy(), leading_pfC->vz(), 0.),
-    //                 leading_pfC->charge()),0.,0.,magneticField);
-    // // std::cout<< "Alive 2b" << std::endl;       
-    // propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
-    // auto position = propagator.particle().vertex().Vect();
-    // // std::cout<< "Alive 2c" << std::endl;
-    // std::cout<< "Propagated eta: " << position.eta() << " phi: " << position.phi() << std::endl;
 
     // find indices for leading prong
     DetId id_leading( spr::findDetIdECAL( caloGeom, p4_leading.eta(), p4_leading.phi(), false ) );
     EBDetId ebId( id_leading );
     int leading_iphi_ = ebId.iphi() - 1;
     int leading_ieta_ = ebId.ieta() > 0 ? ebId.ieta()-1 : ebId.ieta();
-    // std::cout<< "Indices " <<  leading_iphi_ << " " << leading_ieta_ << std::endl;
-    // std::cout<< "Alive 2d" << std::endl;
     
-
     //find indices for neutral component of jet
     DetId id_neutral( spr::findDetIdECAL( caloGeom, neutral_PF.eta(), neutral_PF.phi(), false ) );
     EBDetId ebId_neutral( id_neutral );
     int neutral_iphi_ = ebId_neutral.iphi() - 1;
     int neutral_ieta_ = ebId_neutral.ieta() > 0 ? ebId_neutral.ieta()-1 : ebId_neutral.ieta();
-    // std::cout<< "Indices " <<  neutral_iphi_ << " " << neutral_ieta_ << std::endl;
-    // std::cout<< "Alive 2e" << std::endl;
 
-    // find indices for total jet
+    // find indices for centering on all PFc
     double eta_avg = eta_sum/total_energy;
     double phi_avg = phi_sum/total_energy;
     DetId id_jet( spr::findDetIdECAL( caloGeom, eta_avg, phi_avg, false ) );
     EBDetId ebId_jet( id_jet );
     int jet_sum_iphi_ = ebId_jet.iphi() - 1;
     int jet_sum_ieta_ = ebId_jet.ieta() > 0 ? ebId_jet.ieta()-1 : ebId_jet.ieta();
-    // std::cout<< "Alive 2f" << std::endl;
 
-    // find indices for total jet 1
+    // find indices for centering on gamma and charged hadrons
     double eta_avg1 = eta_sum1/total_energy1;
     double phi_avg1 = phi_sum1/total_energy1;
     DetId id_jet1( spr::findDetIdECAL( caloGeom, eta_avg1, phi_avg1, false ) );
     EBDetId ebId_jet1( id_jet1 );
     int jet_sum_iphi1_ = ebId_jet1.iphi() - 1;
     int jet_sum_ieta1_ = ebId_jet1.ieta() > 0 ? ebId_jet1.ieta()-1 : ebId_jet1.ieta();
-    // std::cout<< "Alive 2g" << std::endl;
 
-
-    // find indices for total jet 2
+    // find indices for centering on egamma
     double eta_avg2 = eta_sum2/total_energy2;
     double phi_avg2 = phi_sum2/total_energy2;
     DetId id_jet2( spr::findDetIdECAL( caloGeom, eta_avg2, phi_avg2, false ) );
     EBDetId ebId_jet2( id_jet2 );
     int jet_sum_iphi2_ = ebId_jet2.iphi() - 1;
     int jet_sum_ieta2_ = ebId_jet2.ieta() > 0 ? ebId_jet2.ieta()-1 : ebId_jet2.ieta();
-    // std::cout<< "Alive 2h" << std::endl;
-    
-  
 
-    // std::cout<< "Alive 3" << std::endl;
-
-    // std::cout << "Neutral sum energy: " << neutral_ECAL << "Leading prong energy: " << p4_leading.energy() << std::endl;
     std::pair<int, reco::GenTau*> match = getTruthLabelForTauJets(thisJet, genParticles, magneticField, 0.4, false);
     int truthLabel = match.first;
     vTaujet_jet_truthLabel_      .push_back(truthLabel);
@@ -411,17 +360,12 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     vector<float> charge_phi_indv;
     vector<float> neutral_phi_indv;
 
-    // std::cout << truthLabel << std::endl;
-
     if (abs(truthLabel)==15) {
-      // std::cout << "test" << std::endl; 
       truthDM = match.second->decay_mode();
       neutral_pT = match.second->neutral_p4().pt();
       neutral_M = match.second->neutral_p4().mass();
       neutral_eta = match.second->neutral_p4().eta();
       neutral_phi = match.second->neutral_p4().phi();
-      // could store all Lorentz vectors instead?
-      // std::cout<< "Storing the individual charged particle info" << std::endl;
 
       // Save charged prongs and index:
       for (const auto &charged : match.second->charge_p4_indv()){
@@ -432,14 +376,10 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
           int charged_ieta_ = ebId.ieta() > 0 ? ebId.ieta()-1 : ebId.ieta();
           
           charge_p_indv.push_back(charged.energy());
-          // std::cout<< "Charged particle energy: " << charged.energy() << "pT: " << charged.pt() << std::endl;
           charge_eta_indv.push_back(charged_ieta_);
           charge_phi_indv.push_back(charged_iphi_);
-        }
-      // std::cout << "DEBUG: vector size" << match.second->neutral_p4_indv().size() << std::endl; 
+        } 
       if (match.second->neutral_p4_indv().size()>0){
-        // std::cout<< "Storing the individual neutral particle info (" << match.second->neutral_p4_indv().size() << ")" << std::endl;
-        // Find index:
         for (const auto &neutral : match.second->neutral_p4_indv()){
             DetId id_neutral( spr::findDetIdECAL( caloGeom, neutral.eta(), neutral.phi(), false ) );
             EBDetId ebId_neutral( id_neutral );
@@ -465,16 +405,12 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
       charge_phi_indv.push_back(-100);
       neutral_phi_indv.push_back(-100);
     }
-    
-
-
 
     vTaujet_jet_truthDM_.push_back(truthDM);
     vTaujet_jet_neutral_pT_.push_back(neutral_pT);
     vTaujet_jet_neutral_m0_.push_back(neutral_M);
     vTaujet_jet_neutral_eta_.push_back(neutral_eta);
     vTaujet_jet_neutral_phi_.push_back(neutral_phi);
-    // push back vector
 
     vTaujet_jet_charged_indv_p_.push_back(charge_p_indv);
     vTaujet_jet_neutral_indv_p_.push_back(neutral_p_indv);

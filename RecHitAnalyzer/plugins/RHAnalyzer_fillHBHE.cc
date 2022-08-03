@@ -47,8 +47,7 @@ void RecHitAnalyzer::fillHBHE ( const edm::Event& iEvent, const edm::EventSetup&
   float energy_;
   //float eta, GlobalPoint pos;
 
-  // std::cout<< "Filling HBHE Rechits for Event"<< std::endl; 
-  vHBHE_energy_EB_.assign( 2*HBHE_IPHI_NUM*HBHE_IETA_MAX_EB, 0. ); // LR HBHE filled here?
+  vHBHE_energy_EB_.assign( 2*HBHE_IPHI_NUM*HBHE_IETA_MAX_EB, 0. ); 
   vHBHE_energy_.assign( 2*HBHE_IPHI_NUM*(HBHE_IETA_MAX_HE-1), 0. );
   hEvt_HBHE_energy->Reset();
 
