@@ -310,6 +310,8 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
       math::XYZTLorentzVector charge_vec;
       math::XYZTLorentzVector neutral_vec;
       math::XYZTLorentzVector lead_pi0_vec;
+      std::vector<std::pair<math::XYZVector,double>> propogated_pis = {};
+      std::vector<std::pair<math::XYZVector, double>> propogated_pi0s = {};
       // Add vector of charged
       std::vector<math::XYZTLorentzVector> charge_vec_all;
       std::vector<math::XYZTLorentzVector> neutral_vec_all;
@@ -326,24 +328,19 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
           count_pi0++;
           neutral_vec+=daughter->p4(); 
           // std::cout << "Gen-Info pi0 energy: " <<  daughter->p4().energy() << "Mother ID " << daughter->mother()->pdgId() << std::endl;
+          std::pair<math::XYZVector, double> neutral_prop = std::make_pair(ExtrapolateToECAL(daughter, magneticField), daughter->p());
           neutral_vec_all.push_back(daughter->p4());
+          propogated_pi0s.push_back(neutral_prop);
           if(daughter->pt() > lead_pi0_vec.pt()) lead_pi0_vec = daughter->p4();
         } 
         if(pdgId == 211) count_pi++;
         if(pdgId == 213) count_rho++;
         if(pdgId == 321) count_k++;
         if(daughter->charge()!=0) {
-          // propagate charged particles to ECAL (B field Loaded in definition)
-          math::XYZTLorentzVector prop_p4(daughter->p4().px(),daughter->p4().py(),daughter->p4().pz(),sqrt(pow(daughter->p(),2)+0.14*0.14)); 
-          BaseParticlePropagator propagator = BaseParticlePropagator(
-          RawParticle(prop_p4, math::XYZTLorentzVector(daughter->vx(), daughter->vy(), daughter->vz(), 0.),
-                      daughter->charge()),0.,0.,magneticField);
-          propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
-          auto position = propagator.particle().vertex().Vect();
-          math::XYZTLorentzVector propagated_p4(daughter->p4().pt(), position.eta(), position.phi(), daughter->p4().energy());
-          // std::cout << "Gen-Info pi+- energy: " <<  daughter->p4().energy() << "Mother ID " << daughter->mother()->pdgId()<< std::endl;
-          charge_vec+=propagated_p4; 
-          charge_vec_all.push_back(propagated_p4);
+          charge_vec+=daughter->p4(); 
+          charge_vec_all.push_back(daughter->p4());
+          std::pair<math::XYZVector, double> charge_prop = std::make_pair(ExtrapolateToECAL(daughter, magneticField), daughter->p());
+          propogated_pis.push_back(charge_prop);
         }
         if(pdgId!=12&&pdgId!=14&&pdgId!=16) {
           count_tot++;
@@ -369,24 +366,15 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
       tau->set_nu_p4(nuvec);
       tau->set_charge_p4_indv(charge_vec_all);
       tau->set_neutral_p4_indv(neutral_vec_all);
+      tau->set_pis_at_ecal(propogated_pis);
+      tau->set_pi0s_at_ecal(propogated_pi0s);
       taus.push_back(tau);
     }
   }
   return taus;
 }
 
-std::vector<reco::GenParticle*> Pi0Combinations(std::set<reco::GenParticleRef> pi0s){ 
-  for (auto x : pi0s) 
-}
-
-//std::vector<reco::GenTau*> OneProngCombinations(std::vector<const reco::GenParticle*> pis, std::set<reco::GenParticleRef> pi0s){
-//  for (auto pi : pis) {
-//
-//  }
-
-}
-
-std::vector<reco::GenTau *> BuildTauLikeJets(edm::Handle<reco::GenJetCollection> genJets) {
+std::vector<reco::GenTau *> BuildTauLikeJets(edm::Handle<reco::GenJetCollection> genJets, double magneticField) {
 
   std::vector<reco::GenTau *> taus;
   for (reco::GenJetCollection::const_iterator iJet = genJets->begin();
@@ -399,17 +387,12 @@ std::vector<reco::GenTau *> BuildTauLikeJets(edm::Handle<reco::GenJetCollection>
     math::XYZTLorentzVector lead_pi0_vec;
     std::vector<const reco::GenParticle*> pis = {};
 
-    bool failSignalCone = false;
-    unsigned Ntotal=parts.size();
     unsigned Npi=0;
     unsigned Ngammas=0;
     std::set<reco::GenParticleRef> mother_refs = {};
     //std::set<int> mother_refs = {};
-    //double cone_size = std::max(std::min(0.1, 3./iJet->pt()),0.05); // define cone size like for HPS taus
-    //if(abs(iJet->charge())!=1) continue;    
  
     for(auto x : parts) {
-      //if(std::fabs(ROOT::Math::VectorUtil::DeltaR(x->p4(),iJet->p4()))>cone_size) failSignalCone=true;
       int pdgId = abs(x->pdgId());
       if(pdgId == 22) {
         Ngammas++;
@@ -424,45 +407,81 @@ std::vector<reco::GenTau *> BuildTauLikeJets(edm::Handle<reco::GenJetCollection>
       }
       if(pdgId == 211) {
         Npi++;
-        if(x->pt()>1.) pis.push_pack(x);
+        if(x->pt()>1.) pis.push_back(x);
       }
     }
+
+    std::vector<math::XYZTLorentzVector> neutral = {};
+    std::vector<std::pair<math::XYZVector, double>> propogated_pi0s = {};
+    for(auto y : mother_refs) {
+      double dR_pi0 = std::fabs(ROOT::Math::VectorUtil::DeltaR(y->p4(),iJet->p4()));
+      if(dR_pi0>0.1) continue; //tau-like jets must be narrow
+      neutral.push_back(y->p4());
+      std::pair<math::XYZVector, double> neutral_prop = std::make_pair(ExtrapolateToECAL(y, magneticField), y->p());
+      propogated_pi0s.push_back(neutral_prop);
+    }
+    math::XYZTLorentzVector tot_neutral(0.,0.,0.,0.);
+    for(auto n : neutral) tot_neutral+=n; 
+    math::XYZTLorentzVector lead_pi0_p4(0.,0.,0.,0.);
+    for(auto n : neutral) {
+       if(n.Pt()>lead_pi0_p4.Pt()) lead_pi0_p4=n;
+     }
+
+    std::vector<reco::GenTau*> tau_cands = {};
+
     // try 1-prong combinations
-
+    
     for (auto x : pis) {
+      bool realTau = false;
       double dR_pi = std::fabs(ROOT::Math::VectorUtil::DeltaR(x->p4(),iJet->p4()));
-      if(dR_pi<0.1) continue;
-      for(auto y : mother_refs) { 
-        double dR_pi0 = std::fabs(ROOT::Math::VectorUtil::DeltaR(y->p4(),iJet->p4()));
-       }
+      if(dR_pi>0.1) continue; //tau-like jets must be narrow
+      reco::GenTau *t = new reco::GenTau();
+      std::vector<math::XYZTLorentzVector> charge = {x->p4()};
+      if (x->motherRefVector().size()>0 && std::abs(x->motherRefVector()[0]->pdgId())==15) realTau=true;
+      t->set_charge_p4_indv(charge);
+      t->set_charge_p4(x->p4());
+      t->set_neutral_p4_indv(neutral);
+      t->set_neutral_p4(tot_neutral);
+      t->set_decay_mode(std::min((int)neutral.size(),9));
+      t->set_lead_pi0_p4(lead_pi0_p4);
+      t->setP4(tot_neutral+x->p4());
+      // require isolation-like selection to reject jets that aren't tau-like
+      if ((iJet->pt()-t->vis_p4().Pt())/t->vis_p4().Pt() > 0.2) continue;
+      if(realTau) continue; // veto real taus
+      t->setPdgId(6);
+      std::vector<std::pair<math::XYZVector,double>> propogated_pis = {};
+      std::pair<math::XYZVector, double> charge_prop = std::make_pair(ExtrapolateToECAL(x, magneticField), x->p());
+      propogated_pis.push_back(charge_prop);
+      t->set_pis_at_ecal(propogated_pis);
+      t->set_pi0s_at_ecal(propogated_pi0s);
+      tau_cands.push_back(t);
     } 
-   
-    //if(Ntotal==Npi+Npi0 && (Npi==1 || Npi==3) && !failSignalCone) {
-    if(Ntotal==Npi+Ngammas && (Npi==1 || Npi==3) /*&& !failSignalCone*/) {
-    //if(Npi==1) {
-      std::cout << "-------" << std::endl;
-      //for(auto x : parts) {
-      //  std::cout << x->pt() << " " << x->pdgId() << "  " << x->eta() << "  " << x->phi() << std::endl; 
-      //}
-      std::cout << mother_refs.size() << std::endl; 
-      for(auto x : mother_refs) {
-        double dR = std::fabs(ROOT::Math::VectorUtil::DeltaR(x->p4(),iJet->p4()));
-        std::cout << x.key() << "  " << x->pdgId() << "  " << x->pt() << "  " << dR << "  " << x->motherRefVector()[0]->pdgId() << std::endl;
+    
+    // might want to add function for 3-prong taus eventually
+
+    // take highest pT tau candidate
+    if(tau_cands.size()==0) continue;
+    double lead_pt=0.;
+    reco::GenTau *lead_tau;
+    for(auto t : tau_cands) {
+      if(t->vis_p4().Pt()>lead_pt) {
+        lead_tau = t;
+        lead_pt = t->vis_p4().Pt();
       }
     }
-
+    taus.push_back(lead_tau); 
   }
 
   return taus;
 }
 
 
-std::pair<int, reco::GenTau*> RecHitAnalyzer::getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, double magneticField, float dRMatch , bool debug ){
+std::pair<int, reco::GenTau*> RecHitAnalyzer::getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, edm::Handle<reco::GenJetCollection> genJets, double magneticField, float dRMatch , bool debug ){
   if ( debug ) {
     std::cout << " Matching reco jetPt:" << recJet->pt() << " jetEta:" << recJet->eta() << " jetPhi:" << recJet->phi() << std::endl;
   }
-  std::vector<reco::GenTau *> gen_taus = BuildTauJets(genParticles, false,true, magneticField);
-  std::vector<reco::GenTau *> gen_taus_like_jets = BuildTauLikeJets(genJets);
+  std::vector<reco::GenTau *> gen_taus = BuildTauJets(genParticles, magneticField, false, true);
+  std::vector<reco::GenTau *> gen_taus_like_jets = BuildTauLikeJets(genJets, magneticField);
   std::vector<const reco::GenParticle *> gen_leptons;
   for (reco::GenParticleCollection::const_iterator iGen = genParticles->begin();
        iGen != genParticles->end();
@@ -507,7 +526,23 @@ std::pair<int, reco::GenTau*> RecHitAnalyzer::getTruthLabelForTauJets(const reco
   }
 
   if(minDR>=0) return std::make_pair(match_pdgId, gen_tau);
-  else return std::make_pair(6, gen_tau);
+  else {
+    // when we have a jet try to match to a tau-like jet
+    for (auto part : gen_taus_like_jets) {
+
+      float dR = reco::deltaR( recJet->eta(),recJet->phi(), part->vis_p4().eta(),part->vis_p4().phi() );
+
+      if ( debug ) std::cout << " \t >> dR " << dR << " id:" << part->pdgId() << " status:" << part->status() << " nDaught:" << part->numberOfDaughters() << " pt:"<< part->vis_p4().pt() << " eta:" << part->vis_p4().eta() << " phi:" << part->vis_p4().phi() << " nMoms:" << part->numberOfMothers()<< std::endl;
+
+      if ( dR > dRMatch ) continue;
+      if(minDR<0 || dR<minDR) {
+        minDR = dR;
+        gen_tau = part;
+        if ( debug ) std::cout << " Matched pdgID " << part->pdgId() << std::endl;
+      }
+    }
+    return std::make_pair(6, gen_tau);
+  }
 }
 
 
@@ -547,30 +582,24 @@ float RecHitAnalyzer::getBTaggingValue(const reco::PFJetRef& recJet, edm::Handle
   return -99;
 }
 
+math::XYZVector RecHitAnalyzer::GetPi0Direction(math::XYZPoint vertex, double releta, double relphi, double seedeta, double seedphi) {
 
+    double eta_orig = releta+seedeta;
+    double phi_orig = relphi+seedphi;
+    phi_orig = TVector2::Phi_mpi_pi(phi_orig);
 
-/*
-//____ Fill FC diphoton variables _____//
-void RecHitAnalyzer::fillFC ( const edm::Event& iEvent, const edm::EventSetup& iSetup ) {
+    BaseParticlePropagator propagator = BaseParticlePropagator(
+    RawParticle((math::XYZTLorentzVector)math::PtEtaPhiELorentzVector(1.,eta_orig, phi_orig,1.), math::XYZTLorentzVector(0., 0., 0., 0.),
+                0.),0.,0.,0.);
 
-  edm::Handle<reco::PhotonCollection> photons;
-  iEvent.getByToken(photonCollectionT_, photons);
+    propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
+    math::XYZVector pos = propagator.particle().vertex().Vect();
 
-  vFC_inputs_.clear();
-
-  int ptOrder[2] = {0, 1};
-  if ( vPho_[1].Pt() > vPho_[0].Pt() ) {
-      ptOrder[0] = 1;
-      ptOrder[1] = 0;
-  }
-  for ( int i = 0; i < 2; i++ ) {
-    vFC_inputs_.push_back( vPho_[ptOrder[i]].Pt()/m0_ );
-    vFC_inputs_.push_back( vPho_[ptOrder[i]].Eta() );
-  }
-  vFC_inputs_.push_back( TMath::Cos(vPho_[0].Phi()-vPho_[1].Phi()) );
-
-} // fillFC() 
-*/
+    math::XYZVector vertex_vec(vertex.x(), vertex.y(), vertex.z());
+    math::XYZVector direction = pos - vertex_vec;
+ 
+    return direction;
+}
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(RecHitAnalyzer);

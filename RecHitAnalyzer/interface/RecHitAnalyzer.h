@@ -64,6 +64,7 @@
 #include "TCanvas.h"
 #include "TStyle.h"
 #include "TMath.h"
+#include "TVector2.h"
 
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
@@ -198,8 +199,9 @@ class RecHitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     const reco::PFCandidate* getPFCand(edm::Handle<PFCollection> pfCands, float eta, float phi, float& minDr, bool debug = false);
     const reco::Track* getTrackCand(edm::Handle<reco::TrackCollection> trackCands, float eta, float phi, float& minDr, bool debug = false);
     int   getTruthLabel(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch = 0.4, bool debug = false);
-    std::pair<int, reco::GenTau*>  getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles,  double magneticField, float dRMatch = 0.4, bool debug = false);
+    std::pair<int, reco::GenTau*>  getTruthLabelForTauJets(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, edm::Handle<reco::GenJetCollection> genJets, double magneticField, float dRMatch = 0.4, bool debug = false);
     float getBTaggingValue(const reco::PFJetRef& recJet, edm::Handle<edm::View<reco::Jet> >& recoJetCollection, edm::Handle<reco::JetTagCollection>& btagCollection, float dRMatch = 0.1, bool debug= false );
+    math::XYZVector GetPi0Direction(math::XYZPoint vertex, double releta, double relphi, double seedeta, double seedphi);
 
     // Jet level functions
     std::string mode_;  // EventLevel / JetLevel
@@ -218,6 +220,7 @@ class RecHitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     void fillEvtSel_jet_dijet      ( const edm::Event&, const edm::EventSetup& );
     void fillEvtSel_jet_dijet_gg_qq( const edm::Event&, const edm::EventSetup& );
     void fillEvtSel_jet_taujet      ( const edm::Event&, const edm::EventSetup& );
+
 
     int nTotal, nPassed;
 
@@ -297,5 +300,17 @@ static const double eta_bins_HBHE[2*(hcaldqm::constants::IETA_MAX_HE-1)+1] =
 //
 // static data member definitions
 //
+
+template<class T>
+math::XYZVector ExtrapolateToECAL(T part, double magneticField) {
+  BaseParticlePropagator propagator = BaseParticlePropagator(
+  RawParticle(part->p4(), math::XYZTLorentzVector(part->vx(), part->vy(), part->vz(), 0.),
+              part->charge()),0.,0.,magneticField);
+
+  propagator.propagateToEcalEntrance(false); // propogate to ECAL entrance
+  math::XYZVector position = propagator.particle().vertex().Vect();
+  return position;
+}
+
 
 #endif

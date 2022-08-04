@@ -2,6 +2,7 @@
 #include "DataFormats/BTauReco/interface/JetTag.h"
 #include "CommonTools/BaseParticlePropagator/interface/BaseParticlePropagator.h"
 #include "CommonTools/BaseParticlePropagator/interface/RawParticle.h"
+#include "TVector2.h"
 
 using std::vector;
 using std::cout;
@@ -28,6 +29,19 @@ vector<vector<float>> vTaujet_jet_charged_indv_eta_;
 vector<vector<float>> vTaujet_jet_neutral_indv_eta_;
 vector<vector<float>> vTaujet_jet_charged_indv_phi_;
 vector<vector<float>> vTaujet_jet_neutral_indv_phi_;
+
+vector<vector<double>> vTaujet_jet_charged_indv_relp_;
+vector<vector<double>> vTaujet_jet_neutral_indv_relp_;
+vector<vector<double>> vTaujet_jet_charged_indv_releta_;
+vector<vector<double>> vTaujet_jet_neutral_indv_releta_;
+vector<vector<double>> vTaujet_jet_charged_indv_relphi_;
+vector<vector<double>> vTaujet_jet_neutral_indv_relphi_;
+
+vector<vector<float>> vTaujet_jet_charged_indv_releta_crystal_;
+vector<vector<float>> vTaujet_jet_neutral_indv_releta_crystal_;
+vector<vector<float>> vTaujet_jet_charged_indv_relphi_crystal_;
+vector<vector<float>> vTaujet_jet_neutral_indv_relphi_crystal_;
+
 // for centering:
 vector<float> vTaujet_jet_leading_eta_;
 vector<float> vTaujet_jet_leading_phi_;
@@ -47,6 +61,9 @@ vector<float> vTaujet_jet_centre1_ieta_;
 vector<float> vTaujet_jet_centre1_iphi_;
 vector<float> vTaujet_jet_centre2_ieta_;
 vector<float> vTaujet_jet_centre2_iphi_;
+
+vector<double> vTaujet_jet_centre2_eta_;
+vector<double> vTaujet_jet_centre2_phi_;
 
 // Initialize branches _____________________________________________________//
 void RecHitAnalyzer::branchesEvtSel_jet_taujet( TTree* tree, edm::Service<TFileService> &fs ) {
@@ -75,6 +92,18 @@ void RecHitAnalyzer::branchesEvtSel_jet_taujet( TTree* tree, edm::Service<TFileS
   tree->Branch("jet_charged_indv_iphi", &vTaujet_jet_charged_indv_phi_);
   tree->Branch("jet_neutral_indv_iphi", &vTaujet_jet_neutral_indv_phi_);
 
+  tree->Branch("jet_charged_indv_relp", &vTaujet_jet_charged_indv_relp_);
+  tree->Branch("jet_neutral_indv_relp", &vTaujet_jet_neutral_indv_relp_);
+  tree->Branch("jet_charged_indv_releta", &vTaujet_jet_charged_indv_releta_);
+  tree->Branch("jet_neutral_indv_releta", &vTaujet_jet_neutral_indv_releta_);
+  tree->Branch("jet_charged_indv_relphi", &vTaujet_jet_charged_indv_relphi_);
+  tree->Branch("jet_neutral_indv_relphi", &vTaujet_jet_neutral_indv_relphi_);
+
+  tree->Branch("jet_charged_indv_releta_crystal", &vTaujet_jet_charged_indv_releta_crystal_);
+  tree->Branch("jet_neutral_indv_releta_crystal", &vTaujet_jet_neutral_indv_releta_crystal_);
+  tree->Branch("jet_charged_indv_relphi_crystal", &vTaujet_jet_charged_indv_relphi_crystal_);
+  tree->Branch("jet_neutral_indv_relphi_crystal", &vTaujet_jet_neutral_indv_relphi_crystal_);
+
   tree->Branch("leading_eta", &vTaujet_jet_leading_eta_);
   tree->Branch("leading_phi", &vTaujet_jet_leading_phi_);
   tree->Branch("leading_ieta", &vTaujet_jet_leading_ieta_);
@@ -93,6 +122,9 @@ void RecHitAnalyzer::branchesEvtSel_jet_taujet( TTree* tree, edm::Service<TFileS
   tree->Branch("jet_centre1_iphi", &vTaujet_jet_centre1_iphi_);
   tree->Branch("jet_centre2_ieta", &vTaujet_jet_centre2_ieta_);
   tree->Branch("jet_centre2_iphi", &vTaujet_jet_centre2_iphi_);
+
+  tree->Branch("jet_centre2_eta", &vTaujet_jet_centre2_eta_);
+  tree->Branch("jet_centre2_phi", &vTaujet_jet_centre2_phi_);
 
 } // branchesEvtSel_jet_taujet()
 
@@ -137,6 +169,18 @@ bool RecHitAnalyzer::runEvtSel_jet_taujet( const edm::Event& iEvent, const edm::
   vTaujet_jet_centre1_iphi_.clear();
   vTaujet_jet_centre2_ieta_.clear();
   vTaujet_jet_centre2_iphi_.clear();
+  vTaujet_jet_centre2_eta_.clear();
+  vTaujet_jet_centre2_phi_.clear();
+  vTaujet_jet_charged_indv_relp_.clear();
+  vTaujet_jet_neutral_indv_relp_.clear();
+  vTaujet_jet_charged_indv_releta_.clear();
+  vTaujet_jet_neutral_indv_releta_.clear();
+  vTaujet_jet_charged_indv_relphi_.clear();
+  vTaujet_jet_neutral_indv_relphi_.clear();
+  vTaujet_jet_charged_indv_releta_crystal_.clear();
+  vTaujet_jet_neutral_indv_releta_crystal_.clear();
+  vTaujet_jet_charged_indv_relphi_crystal_.clear();
+  vTaujet_jet_neutral_indv_relphi_crystal_.clear();
 
   int nJet = 0;
   // Loop over jets
@@ -347,7 +391,11 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     int jet_sum_iphi2_ = ebId_jet2.iphi() - 1;
     int jet_sum_ieta2_ = ebId_jet2.ieta() > 0 ? ebId_jet2.ieta()-1 : ebId_jet2.ieta();
 
-    std::pair<int, reco::GenTau*> match = getTruthLabelForTauJets(thisJet, genParticles, magneticField, 0.4, false);
+    const auto centre_pos = caloGeom->getPosition(ebId_jet2);
+    double jet_sum_phi2_ = centre_pos.phi();
+    double jet_sum_eta2_ = centre_pos.eta();
+
+    std::pair<int, reco::GenTau*> match = getTruthLabelForTauJets(thisJet, genParticles, genJets, magneticField, 0.4, false);
     int truthLabel = match.first;
     vTaujet_jet_truthLabel_      .push_back(truthLabel);
 
@@ -362,6 +410,18 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     vector<float> neutral_eta_indv;
     vector<float> charge_phi_indv;
     vector<float> neutral_phi_indv;
+
+    vector<double> charge_relp_indv;
+    vector<double> neutral_relp_indv;
+    vector<double> charge_releta_indv;
+    vector<double> neutral_releta_indv;
+    vector<double> charge_relphi_indv;
+    vector<double> neutral_relphi_indv;
+
+    vector<float> charge_releta_crystal_indv;
+    vector<float> neutral_releta_crystal_indv;
+    vector<float> charge_relphi_crystal_indv;
+    vector<float> neutral_relphi_crystal_indv;
 
     if (abs(truthLabel)==15) {
       truthDM = match.second->decay_mode();
@@ -381,13 +441,46 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
           charge_p_indv.push_back(charged.energy());
           charge_eta_indv.push_back(charged_ieta_);
           charge_phi_indv.push_back(charged_iphi_);
-        } 
+      } 
+      for (auto x : match.second->pis_at_ecal()){
+          double p = x.second;
+          double eta = x.first.eta();
+          double phi = x.first.phi();
+          double releta = eta-jet_sum_eta2_;
+          double relphi = phi-jet_sum_phi2_;
+          relphi = TVector2::Phi_mpi_pi(relphi);
+          charge_relp_indv.push_back(p);
+          charge_releta_indv.push_back(releta);
+          charge_relphi_indv.push_back(relphi);
+
+          // also store in crystal units:
+          DetId id( spr::findDetIdECAL( caloGeom, eta, phi, false ) );
+          EBDetId ebId( id );
+
+          // get index of the crystal
+          float iphi = ebId.iphi() -1;
+          float ieta = ebId.ieta() > 0 ? ebId.ieta()-1 : ebId.ieta(); 
+
+          // now work out how far along the crystal the particle overlapped to get a continuous number
+          const auto repCorners = caloGeom->getGeometry(ebId)->getCornersREP();
+          float minEta_ = repCorners[2].eta();
+          float maxEta_ = repCorners[0].eta();
+          float minPhi_ = repCorners[2].phi();
+          float maxPhi_ = repCorners[0].phi();
+
+          float ieta_cont = ieta+(eta-minEta_)/(maxEta_-minEta_);
+          float iphi_cont = iphi+(phi-minPhi_)/(maxPhi_-minPhi_);  
+
+          charge_releta_crystal_indv.push_back(ieta_cont);
+          charge_relphi_crystal_indv.push_back(iphi_cont);
+        }
       if (match.second->neutral_p4_indv().size()>0){
         for (const auto &neutral : match.second->neutral_p4_indv()){
             DetId id_neutral( spr::findDetIdECAL( caloGeom, neutral.eta(), neutral.phi(), false ) );
             EBDetId ebId_neutral( id_neutral );
             int neutral_iphi_ = ebId_neutral.iphi() - 1;
             int neutral_ieta_ = ebId_neutral.ieta() > 0 ? ebId_neutral.ieta()-1 : ebId_neutral.ieta();
+
 
             neutral_p_indv.push_back(neutral.energy());
             neutral_eta_indv.push_back(neutral_ieta_);
@@ -398,6 +491,48 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
         neutral_eta_indv.push_back(-100); 
         neutral_phi_indv.push_back(-100);
         
+      }
+      if (match.second->pi0s_at_ecal().size()>0){
+        for (auto x : match.second->pi0s_at_ecal()){
+            double p = x.second;
+            double eta = x.first.eta(); 
+            double phi = x.first.phi(); 
+            double releta = eta-jet_sum_eta2_;
+            double relphi = phi-jet_sum_phi2_; 
+            relphi = TVector2::Phi_mpi_pi(relphi);
+            neutral_relp_indv.push_back(p);
+            neutral_releta_indv.push_back(releta);
+            neutral_relphi_indv.push_back(relphi);
+
+            // also store in crystal units:
+            DetId id( spr::findDetIdECAL( caloGeom, eta, phi, false ) );
+            EBDetId ebId( id );
+
+            // get index of the crystal
+            float iphi = ebId.iphi() -1;
+            float ieta = ebId.ieta() > 0 ? ebId.ieta()-1 : ebId.ieta(); 
+      
+            // now work out how far along the crystal the particle overlapped to get a continuous number
+            const auto repCorners = caloGeom->getGeometry(ebId)->getCornersREP();
+            float minEta_ = repCorners[2].eta();
+            float maxEta_ = repCorners[0].eta();
+            float minPhi_ = repCorners[2].phi();
+            float maxPhi_ = repCorners[0].phi();
+
+            float ieta_cont = ieta+(eta-minEta_)/(maxEta_-minEta_);
+            float iphi_cont = iphi+(phi-minPhi_)/(maxPhi_-minPhi_); 
+
+            neutral_releta_crystal_indv.push_back(ieta_cont);
+            neutral_relphi_crystal_indv.push_back(iphi_cont);
+
+            // uncomment below to determine actual direction
+            //math::XYZVector direction = GetPi0Direction(match.second->vertex(), releta, relphi, jet_sum_eta2_, jet_sum_phi2_);
+
+          }
+      } else{
+        neutral_relp_indv.push_back(0.);
+        neutral_releta_indv.push_back(0.);
+        neutral_relphi_indv.push_back(0.);
       }
       
     } else{
@@ -441,8 +576,21 @@ void RecHitAnalyzer::fillEvtSel_jet_taujet( const edm::Event& iEvent, const edm:
     vTaujet_jet_centre1_iphi_.push_back(jet_sum_iphi1_);
     vTaujet_jet_centre2_ieta_.push_back(jet_sum_ieta2_);
     vTaujet_jet_centre2_iphi_.push_back(jet_sum_iphi2_);
-    
-    
+    vTaujet_jet_centre2_eta_.push_back(jet_sum_eta2_);
+    vTaujet_jet_centre2_phi_.push_back(jet_sum_phi2_); 
+
+    vTaujet_jet_charged_indv_relp_.push_back(charge_relp_indv);
+    vTaujet_jet_neutral_indv_relp_.push_back(neutral_relp_indv);
+    vTaujet_jet_charged_indv_releta_.push_back(charge_releta_indv);
+    vTaujet_jet_neutral_indv_releta_.push_back(neutral_releta_indv);
+    vTaujet_jet_charged_indv_relphi_.push_back(charge_relphi_indv);
+    vTaujet_jet_neutral_indv_relphi_.push_back(neutral_relphi_indv);
+   
+    vTaujet_jet_charged_indv_releta_crystal_.push_back(charge_releta_crystal_indv);
+    vTaujet_jet_neutral_indv_releta_crystal_.push_back(neutral_releta_crystal_indv);
+    vTaujet_jet_charged_indv_relphi_crystal_.push_back(charge_relphi_crystal_indv);
+    vTaujet_jet_neutral_indv_relphi_crystal_.push_back(neutral_relphi_crystal_indv);
+ 
   }//vJetIdxs
 
 

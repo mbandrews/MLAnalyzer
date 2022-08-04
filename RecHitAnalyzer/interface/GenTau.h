@@ -23,7 +23,10 @@ namespace reco {
     void set_charge_p4_indv(std::vector<LorentzVector> s) { charge_p4_indv_ = s; }
     // set vector of individual neutral
     void set_neutral_p4_indv(std::vector<LorentzVector> s) { neutral_p4_indv_ = s; }
-
+    // set positions of charged pions at ecal entrance 
+    void set_pis_at_ecal(std::vector<std::pair<math::XYZVector, double>> s) {pis_at_ecal_ = s;}
+    // set positions of neutral pions at ecal entrance 
+    void set_pi0s_at_ecal(std::vector<std::pair<math::XYZVector, double>> s) {pi0s_at_ecal_ = s;} 
 
 
     // get p4 for charged component of tau
@@ -42,6 +45,10 @@ namespace reco {
     std::vector<LorentzVector> charge_p4_indv() { return charge_p4_indv_; }
     // get vector of charged p4 contributions
     std::vector<LorentzVector> neutral_p4_indv() { return neutral_p4_indv_; }
+    // get positions and energies of charged pions at ecal entrance 
+    std::vector<std::pair<math::XYZVector, double>> pis_at_ecal() { return pis_at_ecal_;}
+    // get positions and enerties of neutral pions at ecal entrance 
+    std::vector<std::pair<math::XYZVector, double>> pi0s_at_ecal() { return pi0s_at_ecal_;}
 
   private:
 
@@ -52,6 +59,8 @@ namespace reco {
     std::vector<LorentzVector> charge_p4_indv_;
     std::vector<LorentzVector> neutral_p4_indv_;
     int dm_=-1;
+    std::vector<std::pair<math::XYZVector, double>> pis_at_ecal_;
+    std::vector<std::pair<math::XYZVector, double>> pi0s_at_ecal_;
 
   };
 
