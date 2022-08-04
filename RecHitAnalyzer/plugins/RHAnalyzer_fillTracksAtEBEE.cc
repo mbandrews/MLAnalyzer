@@ -194,20 +194,15 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
 
     for (const auto &pfC : pfCands){
 
-    // check if charged to avoid null reference
+    // check if charged/avoid null reference
     if (pfC->charge() == 0 || !pfC->trackRef().isNonnull()) { 
       continue; 
       } 
     
     reco::TrackRef iTk = pfC->trackRef();
-    // for ( reco::TrackCollection::const_iterator iTk = tracksH_->begin();
-    //       iTk != tracksH_->end(); ++iTk ) {
       if ( !(iTk->quality(tkQt_)) ) continue;
 
-      //eta   = iTk->eta();
-      //phi   = iTk->phi();
       energy = iTk->p(); // energy is roughly the same as p()
-      // std::cout << "Energy: " << energy << " pT: " << pt << std::endl; 
       pt    = iTk->pt();
       qpt   = (iTk->charge()*pt);
       d0    =  ( !vtxs.empty() ? iTk->dxy(vtxs[0].position()) : iTk->dxy() );
@@ -229,8 +224,7 @@ void RecHitAnalyzer::fillTracksAtEBEE ( const edm::Event& iEvent, const edm::Eve
       auto position = propagator.particle().vertex().Vect();
 
       if ( std::abs(position.eta()) > 3. ) continue;
-
-      //DetId id( spr::findDetIdECAL( caloGeom, eta, phi, false ) ); //old version - not sure how this was working for charged particles 
+ 
       DetId id( spr::findDetIdECAL( caloGeom, position.eta(), position.phi(), false ) );
       if ( id.subdetId() == EcalBarrel ) {
         EBDetId ebId( id );

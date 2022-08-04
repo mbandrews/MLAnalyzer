@@ -32,7 +32,6 @@ RecHitAnalyzer::RecHitAnalyzer(const edm::ParameterSet& iConfig)
   trackCollectionT_       = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("trackCollection"));
 
 
-  // PF collection loaded below
   pfCollectionT_          = consumes<PFCollection>(iConfig.getParameter<edm::InputTag>("pfCollection"));
   vertexCollectionT_       = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexCollection"));
 
@@ -145,10 +144,6 @@ RecHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //fillTRKvolumeAtECAL( iEvent, iSetup );
   fillJetInfoAtECALstitched( iEvent, iSetup );
 
-  // Track matching
-  TrackMatching( iEvent, iSetup );
-
-
   ////////////// 4-Momenta //////////
   //fillFC( iEvent, iSetup );
 
@@ -242,56 +237,6 @@ RecHitAnalyzer::getTrackCand(edm::Handle<reco::TrackCollection> trackCands, floa
   return minDRCand;  
 }
 
-void RecHitAnalyzer::matchTrackPF(edm::Handle<reco::TrackCollection> trackCands, edm::Handle<PFCollection> pfCands, bool debug){
-  // std::cout<< "Matching Tracks to PF Candidates" << std::endl;
-
-  // for ( PFCollection::const_iterator iPFC = pfCands->begin();
-  //       iPFC != pfCands->end(); ++iPFC ){
-          
-  //         // std::cout << iPFC->particleId() << std::endl; 
-  //         if (iPFC->particleId()==5){
-  //           std::cout<< "Neutral hadron" <<std::endl;
-  //         }
-  //       }
-
-      
-
-  // reco::TrackCollection::const_iterator iTk = trackCands->begin();
-  // std::cout<< "Initialised track iterator" << std::endl;
-  // if (iTk != trackCands->end()){
-  //   std::cout << "Reached end" << std::endl;
-  // } else{
-  //   ++iTk;
-  //   std::cout<< "Incremented track iterator" << std::endl;
-  // }
-  // int count_pf = 0;
-  // int count_tr = 0;
-  // for ( PFCollection::const_iterator iPFC = pfCands->begin();
-  //       iPFC != pfCands->end(); ++iPFC ){
-  //         for ( reco::TrackCollection::const_iterator iTk = trackCands->begin();
-  //             iTk != trackCands->end(); ++iTk ){
-  //               if (count_pf==0){
-  //                 ++ count_tr;
-  //                 auto Test = iTk->seedRef();
-  //                 // std::cout << iTk->seedRef() << std::endl;
-  //                 }
-  //               // std::cout << "Test loop 1" << std::endl;
-                
-  //               // if (iPFC->trackRef() == &iTk){
-  //               //   std::cout << "MATCH!" << std::endl;
-  //               // } 
-  //             }
-  //         // std::cout << "Test loop 2" << std::endl;
-  //         if (count_pf==0){std::cout << "Number of Tracks: " << count_tr << std::endl;}
-  //         ++ count_pf;
-          
-  //         // std::cout << iPFC->trackRef().key() << std::endl;
-  //       }
-  // std::cout << "Number of PF cands: " << count_pf << std::endl;
-}
-
-
-
 int RecHitAnalyzer::getTruthLabel(const reco::PFJetRef& recJet, edm::Handle<reco::GenParticleCollection> genParticles, float dRMatch , bool debug ){
   if ( debug ) {
     std::cout << " Mathcing reco jetPt:" << recJet->pt() << " jetEta:" << recJet->eta() << " jetPhi:" << recJet->phi() << std::endl;
@@ -373,7 +318,7 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
         unsigned pdgId = abs(daughter->pdgId());
         if(pdgId == 111) {
           count_pi0++;
-          neutral_vec+=daughter->p4(); // LR store each here
+          neutral_vec+=daughter->p4(); 
           // std::cout << "Gen-Info pi0 energy: " <<  daughter->p4().energy() << "Mother ID " << daughter->mother()->pdgId() << std::endl;
           neutral_vec_all.push_back(daughter->p4());
           if(daughter->pt() > lead_pi0_vec.pt()) lead_pi0_vec = daughter->p4();
@@ -382,8 +327,7 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
         if(pdgId == 213) count_rho++;
         if(pdgId == 321) count_k++;
         if(daughter->charge()!=0) {
-          // propagate charged particles to ECAL
-          // B field Loaded in def
+          // propagate charged particles to ECAL (B field Loaded in definition)
           math::XYZTLorentzVector prop_p4(daughter->p4().px(),daughter->p4().py(),daughter->p4().pz(),sqrt(pow(daughter->p(),2)+0.14*0.14)); 
           BaseParticlePropagator propagator = BaseParticlePropagator(
           RawParticle(prop_p4, math::XYZTLorentzVector(daughter->vx(), daughter->vy(), daughter->vz(), 0.),
@@ -392,7 +336,7 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
           auto position = propagator.particle().vertex().Vect();
           math::XYZTLorentzVector propagated_p4(daughter->p4().pt(), position.eta(), position.phi(), daughter->p4().energy());
           // std::cout << "Gen-Info pi+- energy: " <<  daughter->p4().energy() << "Mother ID " << daughter->mother()->pdgId()<< std::endl;
-          charge_vec+=propagated_p4; // LR store each here
+          charge_vec+=propagated_p4; 
           charge_vec_all.push_back(propagated_p4);
         }
         if(pdgId!=12&&pdgId!=14&&pdgId!=16) {
@@ -413,12 +357,10 @@ std::vector<reco::GenTau *> BuildTauJets(edm::Handle<reco::GenParticleCollection
       if(count_tot==4 && count_pi==3 && count_pi0==1) tauFlag=11;
       reco::GenTau *tau = new reco::GenTau(iGen->charge(), iGen->p4(), vtx, iGen->pdgId(), iGen->status(), true);   
       tau->set_decay_mode(tauFlag);
-      // add some vars here?
       tau->set_charge_p4(charge_vec); 
       tau->set_neutral_p4(neutral_vec);
       tau->set_lead_pi0_p4(lead_pi0_vec); 
       tau->set_nu_p4(nuvec);
-      // set vector of charges:
       tau->set_charge_p4_indv(charge_vec_all);
       tau->set_neutral_p4_indv(neutral_vec_all);
       taus.push_back(tau);

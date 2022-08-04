@@ -8,9 +8,6 @@ import sys
 import FWCore.ParameterSet.VarParsing as parser
 opts = parser.VarParsing ('analysis')
 
-# opts.register('file',
-# 'root://xrootd.unl.edu//store/mc/RunIISummer20UL18RECO/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/AODSIM/106X_upgrade2018_realistic_v11_L1v1-v1/260000/1880AB56-620B-2247-A593-BD239DC4E805.root',
-
 opts.register('file',
 'root://xrootd.unl.edu//store/mc/RunIISummer20UL18RECO/GluGluHToTauTau_M-125_TuneCP5_13TeV-amcatnloFXFX-pythia8/AODSIM/106X_upgrade2018_realistic_v11_L1v1-v1/2550000/99C007C4-6099-524F-9C01-20E7F819EA77.root',
 parser.VarParsing.multiplicity.singleton,
@@ -48,7 +45,7 @@ process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(1000)
 )
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 50
 
 
 ################################################################
